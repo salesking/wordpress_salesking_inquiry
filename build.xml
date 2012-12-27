@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="VMKing" default="dist">
+    <!-- ============================================  -->
+    <!-- Target: prepare                               -->
+    <!-- ============================================  -->
+    <target name="prepare">
+        <echo msg="Making directory ./build" />
+        <mkdir dir="./build" />
+
+        <echo msg="Making current timestamp" />
+        <tstamp>
+            <format property="zipstamp" pattern="%d%m%y%H%M%S" locale="de-DE" />
+        </tstamp>
+    </target>
+
+    <!-- ============================================  -->
+    <!-- Target: build                                 -->
+    <!-- ============================================  -->
+    <target name="build" depends="prepare">
+        <echo msg="Deleting files from build directory" />
+        <delete dir="./build/plg" />
+
+        <echo msg="Copying files to build directory..." />
+
+        <echo msg="Copying admin folder" />
+        <copy todir="./build/com/admin">
+            <fileset dir="./src/administrator/components/com_vmking">
+                <exclude name="vmking.xml"/>
+            </fileset>
+            <filterchain>
+                <replacetokens begintoken="%%" endtoken="%%">
+                    <token key="COMPONENTVERSION" value="${com.extension.version}" />
+                </replacetokens>
+            </filterchain>
+        </copy>
+
+    </target>
+
+    <!-- ============================================  -->
+    <!-- (DEFAULT)  Target: dist                       -->
+    <!-- ============================================  -->
+    <target name="dist" depends="build">
+        <echo msg="Creating component archive..." />
+
+        <zip destfile="./build/com_vmking_${com.extension.version}_${zipstamp}.zip">
+            <fileset dir="./build/com">
+                <include name="*" />
+                <include name="**/*" />
+            </fileset>
+        </zip>
+
+        <echo msg="Files copied and compressed in build directory OK!" />
+    </target>
+</project>
