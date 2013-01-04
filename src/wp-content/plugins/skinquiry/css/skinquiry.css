@@ -1,0 +1,18 @@
+#skinquiry_products {
+    display: none;
+}
+
+#skinquiry_form #skinquiry_clientdetails label {
+    width: 100%;
+    display: block;
+}
+
+
+#skinquiry_form legend {
+    font-weight: bold;
+}
+
+#skinquiry_form .skinquiry_delete {
+    font-size: 0.8em;
+    cursor: pointer;
+}

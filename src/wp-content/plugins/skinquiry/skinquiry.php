@@ -37,10 +37,11 @@ class SkInquiry {
         $this->options = get_option('skinquiry_options');
         $this->api = $this->initLibrary();
 
-        add_action( 'init', array($this, 'send') );
+        add_action( 'init', array($this, 'frontendInit') );
+        add_shortcode( 'skinquiry', array($this, 'frontendDisplay') );
+
         add_action( 'admin_init', array($this, 'adminInit') );
         add_action( 'admin_menu', array($this, 'adminMenu') );
-        add_shortcode( 'skinquiry', array($this, 'display') );
     }
 
     public function adminInit()
@@ -56,6 +57,16 @@ class SkInquiry {
         add_settings_field('skinquiry_notes_before', 'Notes Before', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_before"));
         add_settings_field('skinquiry_notes_after', 'Notes After', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_after"));
 
+    }
+
+    public function frontendInit() {
+        die("init");
+        var_dump($_POST);
+        if($_POST['skinquiry_sentform'] == 1) {
+            if($this->validate()) {
+                $this->send();
+            }
+        }
     }
 
     public function generateInputs($args)
@@ -86,48 +97,98 @@ class SkInquiry {
                 break;
 
             case "skinquiry_notes_before":
-                echo '<textarea id="skinquiry_notes_before" name="skinquiry_options[notes_before]" rows="5" cols="40" type="text" value="'.$this->options['notes_before'].'"></textarea>';
+                echo '<textarea id="skinquiry_notes_before" name="skinquiry_options[notes_before]" rows="5" cols="40" type="text">'.$this->options['notes_before'].'</textarea>';
                 break;
 
             case "skinquiry_notes_after":
-                echo '<textarea id="skinquiry_notes_after" name="skinquiry_options[notes_after]" rows="5" cols="40" type="text" value="'.$this->options['notes_after'].'"></textarea>';
+                echo '<textarea id="skinquiry_notes_after" name="skinquiry_options[notes_after]" rows="5" cols="40" type="text">'.$this->options['notes_after'].'</textarea>';
                 break;
         }
     }
 
-    public function fetchProducts() {
-        $products = $this->api->getCollection(array(
-                'type' => 'product',
-                'autoload' => true
-            ));
+    public function frontendDisplay() {
+        wp_enqueue_script( 'jquery' );
+        wp_enqueue_script( 'skinquiry', plugins_url('js/skinquiry.js', __FILE__ ));
+        wp_enqueue_style( 'skinquiry', plugins_url('css/skinquiry.css', __FILE__ ));
 
-        try {
-            $products->load();
+        $products = $this->fetchProducts();
+
+        if(!count($products)) {
+            $placeholder = new stdClass();
+            $placeholder->id = "";
+            $placeholder->name = "-- No Products found --";
+            $placeholder->price = "";
+            $placeholder->tax = "";
+            $placeholder->number = "";
+
+            $products = array(
+                $placeholder
+            );
         }
-        catch (SaleskingException $e) {
-            return false;
+
+        $content = '<select id="skinquiry_products" aria-hidden="true" tabindex="-1">';
+
+        foreach($products as $product) {
+            $content .= '<option value="'.$product->id.'" data-price="'.$product->price.'" data-tax="'.$product->tax.'" data-number="'.$product->number.'">'.$product->name.'</option>';
         }
 
-        return $products;
+        $content .= '</select>
+        <form method="post" id="skinquiry_form">
+            <fieldset id="skinquiry_clientdetails">
+                <legend>Your Details</legend>
+                <label for="skinquiry_client_last_name">Last name</label>
+                <input name="skinquiry_client_last_name" type="text" id="skinquiry_client_last_name" />
+                <label for="skinquiry_client_first_name">First name</label>
+                <input name="skinquiry_client_first_name" type="text" id="skinquiry_client_first_name" />
+                <label for="skinquiry_client_organisation_name">Company</label>
+                <input name="skinquiry_client_organisation_name" type="text" id="skinquiry_client_organisation_name" />
+                <label for="skinquiry_client_email">E-Mail</label>
+                <input name="skinquiry_client_email" type="text" id="skinquiry_client_email" />
+                <label for="skinquiry_client_phone">Phone</label>
+                <input name="skinquiry_client_phone" type="text" id="skinquiry_client_phone" />
+                <label for="skinquiry_client_address1">Address</label>
+                <input name="skinquiry_client_address1" type="text" id="skinquiry_client_address1" />
+                <label for="skinquiry_client_zip">Zip</label>
+                <input name="skinquiry_client_zip" type="text" id="skinquiry_client_zip" />
+                <label for="skinquiry_client_city">City</label>
+                <input name="skinquiry_client_city" type="text" id="skinquiry_client_city" />
+                <label for="skinquiry_client_country">Country</label>
+                <input name="skinquiry_client_country" type="text" id="skinquiry_client_country" />
+            </fieldset>
+            <fieldset>
+                <legend>Products</legend>
+                <div id="skinquiry_productlist">
+                    <div class="skinquiry_product" data-rowid="0">
+                        <label for="skinquiry_products_0_product">Product</label>
+                        <select id="skinquiry_products_0_product" name="skinquiry_products[0][product]">';
+
+        foreach($products as $product) {
+            $content .= '<option value="'.$product->id.'">'.$product->name.'</option>';
+        }
+
+        $content .= '   </select>
+                        <label for="skinquiry_products_0_quantity">Quantity</label>
+                        <input id="skinquiry_products_0_quantity" name="skinquiry_products[0][quantity]" value="1" type="text" />
+                        <span class="skinquiry_delete">Remove</span>
+                    </div>
+                </div>
+                <button id="skinquiry_addproduct">Add line item</button>
+            </fieldset>
+            <fieldset>
+                <legend>Comment</legend>
+                <label for="skinquiry_comment">Your message for us</label>
+                <textarea id="skinquiry_comment"></textarea>
+                <input type="submit" value="Request Inquiry" />
+            </fieldset>
+            <input type="hidden" id="skinquiry_rowid" name="skinquiry_rowid" value="0" />
+            <input type="hidden" id="skinquiry_sentform" name="skinquiry_sentform" value="1" />
+        </form>';
+
+        return $content;
+
     }
 
-    public function send() {
-
-    }
-
-    public function validate() {
-
-    }
-
-    public function display() {
-        return "dass";
-    }
-
-    public function validateSettings($input) {
-        return $input;
-    }
-
-    public function settings() {
+    public function adminDisplay() {
         ?>
             <div class="wrap">
                 <?php screen_icon(); ?>
@@ -140,6 +201,16 @@ class SkInquiry {
                 </form>
             </div>
         <?php
+    }
+
+    public function validateSettings($input) {
+        //@todo proper input validation and check for correct credentials
+
+        return $input;
+    }
+
+    public function adminMenu() {
+        add_options_page('SalesKing Inquiry Settings', 'SkInquiry', 'manage_options', 'skinquiry', array($this, 'adminDisplay'));
     }
 
     public function initLibrary() {
@@ -166,8 +237,49 @@ class SkInquiry {
         return new Salesking($config);
     }
 
-    public function adminMenu() {
-        add_options_page('SalesKing Inquiry Settings', 'SkInquiry', 'manage_options', 'skinquiry', array($this, 'settings'));
+    public function fetchProducts() {
+        if($this->products == null) {
+            $products = $this->api->getCollection(array(
+                    'type' => 'product',
+                    'autoload' => true
+                ));
+
+            try {
+                $this->products = $products->tags($this->options['products_tag'])->load()->getItems();
+            }
+            catch (SaleskingException $e) {
+                return false;
+            }
+        }
+
+        return $this->products;
+    }
+
+    public function send() {
+        //@todo make api calls
+        $address = $this->api->getObject('address');
+
+        try {
+        $address->bind($_POST, array(
+                "skinquiry_client_address1" => "address1",
+                "skinquiry_client_city" => "city",
+                "skinquiry_client_zip" => "zip",
+                "skinquiry_client_country" => "country"
+            ));
+        }
+        catch (SaleskingException $e) {
+            return false;
+        }
+
+        die(print_r($address->getData()));
+
+        return true;
+    }
+
+    public function validate() {
+        //@todo proper frontend validation
+
+        return true;
     }
 }
 
