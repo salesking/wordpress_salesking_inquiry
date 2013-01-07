@@ -1,9 +1,11 @@
 jQuery(document).ready(function ($) {
 
+    // set up line item removal
     $('#skinquiry_productlist').on('click','.skinquiry_delete',function(e) {
         $(this).parents('.skinquiry_product').remove();
     });
 
+    // set up line item generation
     $('#skinquiry_addproduct').click(function(e) {
         e.preventDefault();
 
@@ -21,5 +23,15 @@ jQuery(document).ready(function ($) {
         product.find('select').html($('#skinquiry_products').html())
 
         $('#skinquiry_productlist').append(product);
+    });
+
+    // set up validation
+    $('#skinquiry_form').validate({
+        rules: {
+            skinquiry_client_email: {
+                email: true,
+                required: true
+            }
+        }
     });
 });

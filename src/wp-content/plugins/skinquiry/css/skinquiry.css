@@ -16,3 +16,9 @@
     font-size: 0.8em;
     cursor: pointer;
 }
+
+#skinquiry_form label.error {
+    background: red;
+    color: white;
+    font-size: 0.8em;
+}
