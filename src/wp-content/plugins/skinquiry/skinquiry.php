@@ -78,6 +78,10 @@ class SkInquiry {
         add_settings_field('skinquiry_notes_before', 'Notes Before', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_before"));
         add_settings_field('skinquiry_notes_after', 'Notes After', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_after"));
 
+        // display error message if necessary
+        add_action('admin_notices',function() {echo '<div class="error">Could not SalesKing API - Please make sure that all system requirements (curl) are meet</div>';});
+
+
     }
 
     /**
@@ -190,6 +194,11 @@ class SkInquiry {
      * @return string html output
      */
     public function frontendDisplay() {
+        // make sure that the api is alright
+        if($this->api == false) {
+            return;
+        }
+
         // load jquery and
         wp_enqueue_script( 'jquery' );
         wp_enqueue_script( 'skinquiry', plugins_url('js/skinquiry.js', __FILE__ ));
@@ -285,12 +294,16 @@ class SkInquiry {
             <div class="wrap">
                 <?php screen_icon(); ?>
                 <h2>SalesKing Inquiry Plugin</h2>
+                <?php if($this->api != false): ?>
+
                 <form action="options.php" method="post">
                     <?php settings_fields('skinquiry_options'); ?>
                     <?php do_settings_sections('skinquiry'); ?>
 
                     <input name="Submit" type="submit" class="button button-primary" value="<?php esc_attr_e('Save Changes'); ?>" />
                 </form>
+
+                <?php endif; ?>
             </div>
         <?php
     }
