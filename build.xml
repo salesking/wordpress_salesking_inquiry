@@ -8,10 +8,6 @@
         <echo msg="Making directory ./build" />
         <mkdir dir="./build" />
 
-        <echo msg="Making current timestamp" />
-        <tstamp>
-            <format property="zipstamp" pattern="%d%m%y%H%M%S" locale="de-DE" />
-        </tstamp>
     </target>
 
     <!-- ============================================  -->
@@ -23,16 +19,9 @@
 
         <echo msg="Copying files to build directory..." />
 
-        <echo msg="Copying admin folder" />
-        <copy todir="./build/com/admin">
-            <fileset dir="./src/administrator/components/com_vmking">
-                <exclude name="vmking.xml"/>
-            </fileset>
-            <filterchain>
-                <replacetokens begintoken="%%" endtoken="%%">
-                    <token key="COMPONENTVERSION" value="${com.extension.version}" />
-                </replacetokens>
-            </filterchain>
+        <echo msg="Copying plugin folder" />
+        <copy todir="./build/plg">
+            <fileset dir="./src/wp-content/plugins/skinquiry" />
         </copy>
 
     </target>
@@ -41,10 +30,15 @@
     <!-- (DEFAULT)  Target: dist                       -->
     <!-- ============================================  -->
     <target name="dist" depends="build">
-        <echo msg="Creating component archive..." />
+        <echo msg="Making current timestamp" />
+        <tstamp>
+            <format property="zipstamp" pattern="%d%m%y%H%M%S" locale="de-DE" />
+        </tstamp>
 
-        <zip destfile="./build/com_vmking_${com.extension.version}_${zipstamp}.zip">
-            <fileset dir="./build/com">
+        <echo msg="Creating plugin archive..." />
+
+        <zip destfile="./build/plg_skinquiry_${zipstamp}.zip">
+            <fileset dir="./build/plg">
                 <include name="*" />
                 <include name="**/*" />
             </fileset>
