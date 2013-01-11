@@ -3,7 +3,7 @@
 * Plugin Name: SkInquiry
 * Plugin URI: http://github.com/salesking/SkInquiryWP
 * Description: This plugin allows you to create a form for Salesking inquiries on you page
-* Version: %%PLUGINVERSION%%
+* Version: 1.0.0
 * Author: David Jardin
 * Author URI: http://www.djumla.de
 * License: GPL3
@@ -38,13 +38,15 @@ class SkInquiry {
 
     private $emailTemplates = null;
 
+    private $apiStatus = null;
+
     /**
      * constructor, gets fired on every application start
      */
     public function __construct()
     {
         $this->options = get_option('skinquiry_options');
-        $this->api = $this->initLibrary();
+        $this->api = $this->initApi();
 
         // determine current application context
         if(is_admin()) {
@@ -60,13 +62,28 @@ class SkInquiry {
     }
 
     /**
+     * make some pre activation checks for system requirements
+     */
+    public static function activationHook() {
+        if (!version_compare( PHP_VERSION, '5.3.0', '>=' )) {
+            deactivate_plugins( __FILE__ );
+            wp_die( wp_sprintf( __( 'Sorry, This plugin has taken a bold step in requiring PHP 5.3.0+. Your server is currently running PHP %2s, Please bug your host to upgrade to a recent version of PHP which is less bug-prone.', 'skinquiry' ), PHP_VERSION ) );
+        }
+
+        if (!in_array('curl', get_loaded_extensions())) {
+            deactivate_plugins( __FILE__ );
+            wp_die( __( 'Sorry, This plugin requires the curl extension for PHP which isn\'t available on you server. Please contact your host.', 'skinquiry' ));
+        }
+    }
+
+    /**
      * gets executed when viewing the admin panel and sets up the plugin options
      */
     public function adminInit()
     {
         // set up plugin options using wp options API
         register_setting( 'skinquiry_options', 'skinquiry_options', array($this, 'validateSettings') );
-        add_settings_section('skinquiry_main', 'Main Settings', null , 'skinquiry');
+        add_settings_section('skinquiry_main', 'Main Settings', array($this, 'adminSettingsDisplay') , 'skinquiry');
         add_settings_field('skinquiry_sk_url', 'SalesKing URL', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_url"));
         add_settings_field('skinquiry_sk_username', 'SalesKing Username', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_username"));
         add_settings_field('skinquiry_sk_password', 'SalesKing Password', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_password"));
@@ -79,9 +96,16 @@ class SkInquiry {
         add_settings_field('skinquiry_notes_after', 'Notes After', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_after"));
 
         // display error message if necessary
-        add_action('admin_notices',function() {echo '<div class="error">Could not SalesKing API - Please make sure that all system requirements (curl) are meet</div>';});
+        if($this->api == false) {
+            add_action('admin_notices', array($this, 'outputCurlMessage'));
+        }
 
+        // display
 
+    }
+
+    public function outputCurlMessage() {
+        echo '<div class="error">Could not SalesKing API - Please make sure that all system requirements (curl) are meet</div>';
     }
 
     /**
@@ -308,6 +332,19 @@ class SkInquiry {
         <?php
     }
 
+    /**
+     * generate settings header
+     * @return null
+     */
+    public function adminSettingsDisplay() {
+        return null;
+    }
+
+    /**
+     * @param $input
+     *
+     * @return mixed
+     */
     public function validateSettings($input) {
         // delete cached products
         delete_transient('skinquiry_products');
@@ -326,20 +363,9 @@ class SkInquiry {
      * set up Salesking PHP library
      * @return bool|Salesking
      */
-    public function initLibrary() {
-        // make sure we have all necessary options
-        if(empty($this->options['sk_username']) || empty($this->options['sk_password']) || empty($this->options['sk_url'])) {
-            return false;
-        }
-
-
+    public function initApi() {
         // make sure that curl is available
         if(!in_array('curl', get_loaded_extensions())) {
-            return false;
-        }
-
-        // include file
-        if(!file_exists(dirname(__FILE__).'/lib/salesking/salesking.php')) {
             return false;
         }
 
@@ -356,6 +382,31 @@ class SkInquiry {
     }
 
     /**
+     * fetch current api status
+     * @return bool
+     */
+    public function getApiStatus() {
+        if($this->apiStatus == null && $this->options['sk_url'] && $this->options['sk_username'] && $this->options['sk_password'])
+        {
+            try {
+                $response = $this->api->request("/api/users/current");
+            }
+            catch (SaleskingException $e) {
+                $this->apiStatus = false;
+                return self::$apiStatus;
+            }
+
+            if($response['code'] = '200' AND property_exists($response['body'],'user')) {
+                $this->apiStatus = true;
+            }
+            else
+            {
+                $this->apiStatus = false;
+            }
+        }
+    }
+
+    /**
      * return products from caching layers
      * @return bool|null
      */
@@ -365,7 +416,7 @@ class SkInquiry {
             // cached in db?
             if ( false === ( $products = get_transient( 'skinquiry_products' ) ) ) {
                 // fetch from api and cache in db
-                $products = $this->fetchProductsFromApi();
+                $products = $this->fetchProducts();
                 set_transient('skinquiry_products', $products, 60*60);
             }
 
@@ -380,7 +431,7 @@ class SkInquiry {
      * fetch products from api
      * @return bool
      */
-    public function fetchProductsFromApi() {
+    public function fetchProducts() {
         $products = $this->api->getCollection(array(
                 'type' => 'product',
                 'autoload' => true
@@ -566,6 +617,7 @@ class SkInquiry {
             $mail = new stdClass();
             $mail->email = new stdClass();
             $mail->email->to_addr = $_POST['skinquiry_client_email'];
+            $mail->email->from_addr = "";
 
             $mail->send = true;
             $mail->archived_pdf = true;
@@ -645,8 +697,13 @@ class SkInquiry {
     }
 }
 
-add_action( 'init', function() {
-    $SkInquiry = new SkInquiry();
-} );
+if(!function_exists('skinquiry_init_function')) {
+    function skinquiry_init_function() {
+        new SkInquiry();
+    }
+}
+
+register_activation_hook( __FILE__, array( 'SkInquiry', 'activationHook' ) );
+add_action( 'init', 'skinquiry_init_function');
 
 
