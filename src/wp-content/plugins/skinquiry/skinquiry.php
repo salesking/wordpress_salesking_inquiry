@@ -263,7 +263,11 @@ class SkInquiry {
      * @return null
      */
     public function adminSettingsDisplay() {
-        return null;
+        if($this->options['message'] && $_GET['settings-updated'] == "true") {
+            ?>
+            <div class="error"><?php echo $this->options['message']; ?></div>
+            <?php
+        }
     }
 
     /**
@@ -280,6 +284,8 @@ class SkInquiry {
                 $input['sk_url'] = '';
                 $input['sk_username'] = '';
                 $input['sk_password'] = '';
+
+                $input['message'] = 'Invalid credentials';
             }
         }
 
@@ -294,11 +300,12 @@ class SkInquiry {
      * @return bool|Salesking
      */
     private function getApi($sk_url = null, $sk_username = null, $sk_password = null) {
+        // check if credentials are provided and switch to default values
         $sk_url = ($sk_url == null) ? $this->options['sk_url'] : $sk_url;
         $sk_username = ($sk_username == null) ? $this->options['sk_username'] : $sk_username;
         $sk_password = ($sk_password == null) ? $this->options['sk_password'] : $sk_password;
 
-        // create a unique instance for every credential combinatin
+        // create a unique instance for every credential combination
         $hash = md5($sk_url.$sk_username.$sk_password);
 
         if(!array_key_exists($hash, $this->apis)) {
@@ -339,7 +346,7 @@ class SkInquiry {
         $sk_username = ($sk_username == null) ? $this->options['sk_username'] : $sk_username;
         $sk_password = ($sk_password == null) ? $this->options['sk_password'] : $sk_password;
 
-        // create a unique instance for every credential combinatin
+        // create a unique instance for every credential combination
         $hash = md5($sk_url.$sk_username.$sk_password);
 
         if(!array_key_exists($hash, $this->apiStates))
