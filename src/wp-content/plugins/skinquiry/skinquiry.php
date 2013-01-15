@@ -134,9 +134,10 @@ class SkInquiry {
 
         // hide all other settings as long as the api is not ready
         if($this->getApiStatus() && $this->options['sk_url'] && $this->options['sk_password'] && $this->options['sk_username']) {
+            add_settings_field('skinquiry_document_type', 'Document Type', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_document_type"));
             add_settings_field('skinquiry_products_tag', 'Products Tag', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_products_tag"));
             add_settings_field('skinquiry_client_tags', 'Client Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_client_tags"));
-            add_settings_field('skinquiry_estimate_tags', 'Estimate Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_estimate_tags"));
+            add_settings_field('skinquiry_document_tags', 'Document Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_document_tags"));
             add_settings_field('skinquiry_redirect_url', 'Redirect URL', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_redirect_url"));
             add_settings_field('skinquiry_emailtemplate', 'E-Mail Template', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_emailtemplate"));
             add_settings_field('skinquiry_pdftemplate', 'PDF Template', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_pdftemplate"));
@@ -167,6 +168,22 @@ class SkInquiry {
                 echo '<input id="skinquiry_sk_password" name="skinquiry_options[sk_password]" size="40" type="password" value="'.$this->options['sk_password'].'" />';
                 break;
 
+            // document type
+            case "skinquiry_document_type":
+                echo '<select id="skinquiry_document_type" name="skinquiry_options[document_type]" >';
+
+                $checked = ($this->options['document_type'] == 'estimate') ? 'selected="selected"' : '';
+                echo '<option '.$checked.' value="estimate">Estimate</option>';
+
+                $checked = ($this->options['document_type'] == 'order') ? 'selected="selected"' : '';
+                echo '<option '.$checked.' value="order">Order</option>';
+
+                $checked = ($this->options['document_type'] == 'invoice') ? 'selected="selected"' : '';
+                echo '<option '.$checked.' value="invoice">Invoice</option>';
+
+                echo '</select>';
+                break;
+
             // products tag
             case "skinquiry_products_tag":
                 echo '<input id="skinquiry_products_tag" name="skinquiry_options[products_tag]" size="40" type="text" value="'.$this->options['products_tag'].'" />';
@@ -177,9 +194,9 @@ class SkInquiry {
                 echo '<input id="skinquiry_client_tags" name="skinquiry_options[client_tags]" size="40" type="text" value="'.$this->options['client_tags'].'" />';
                 break;
 
-            // estimate tags
-            case "skinquiry_estimate_tags":
-                echo '<input id="skinquiry_estimate_tags" name="skinquiry_options[estimate_tags]" size="40" type="text" value="'.$this->options['estimate_tags'].'" />';
+            // document tags
+            case "skinquiry_document_tags":
+                echo '<input id="skinquiry_document_tags" name="skinquiry_options[document_tags]" size="40" type="text" value="'.$this->options['document_tags'].'" />';
                 break;
 
             // redirect url
@@ -234,12 +251,12 @@ class SkInquiry {
                 echo '</select>';
                 break;
 
-            // estimate notes before
+            // document notes before
             case "skinquiry_notes_before":
                 echo '<textarea id="skinquiry_notes_before" name="skinquiry_options[notes_before]" rows="5" cols="40" type="text">'.$this->options['notes_before'].'</textarea>';
                 break;
 
-            // estimate notes after
+            // document notes after
             case "skinquiry_notes_after":
                 echo '<textarea id="skinquiry_notes_after" name="skinquiry_options[notes_after]" rows="5" cols="40" type="text">'.$this->options['notes_after'].'</textarea>';
                 break;
@@ -587,7 +604,7 @@ class SkInquiry {
         // set up objects
         $address = $this->getApi()->getObject('address');
         $client = $this->getApi()->getObject('client');
-        $estimate = $this->getApi()->getObject('estimate');
+        $document = $this->getApi()->getObject($this->options['document_type']);
         $comment = $this->getApi()->getObject('comment');
 
         // bind address data
@@ -650,22 +667,22 @@ class SkInquiry {
             }
         }
 
-        // set all the other options for the estimate
+        // set all the other options for the document
         try {
-            $estimate->client_id = $client->id;
-            $estimate->tag_list = $this->options['estimate_tags'];
-            $estimate->notes_before = $this->options['notes_before'];
-            $estimate->notes_after = $this->options['notes_after'];
-            $estimate->status = "open";
-            $estimate->line_items = $items;
+            $document->client_id = $client->id;
+            $document->tag_list = $this->options['document_tags'];
+            $document->notes_before = $this->options['notes_before'];
+            $document->notes_after = $this->options['notes_after'];
+            $document->status = "open";
+            $document->line_items = $items;
         }
         catch (SaleskingException $e) {
             return false;
         }
 
-        // save estimate
+        // save document
         try {
-            $estimate->save();
+            $document->save();
         }
         catch (SaleskingException $e) {
             return false;
@@ -676,7 +693,7 @@ class SkInquiry {
             try {
                 $comment->text = $_POST['skinquiry_comment'];
                 $comment->related_object_type = 'Document';
-                $comment->related_object_id = $estimate->id;
+                $comment->related_object_id = $document->id;
                 $comment->save();
             }
             catch (SaleskingException $e) {
@@ -687,7 +704,7 @@ class SkInquiry {
 
         // generate pdf
         try {
-            $this->getApi()->request('/api/estimates/'.$estimate->id.'/print','POST',
+            $this->getApi()->request('/api/'.$this->options['document_type'].'s/'.$document->id.'/print','POST',
                 json_encode(array(
                     "template_id" => $this->options['pdftemplate']
                 ))
@@ -709,7 +726,7 @@ class SkInquiry {
             $mail->template_id = $this->options['emailtemplate'];
 
             // create mail and send to client
-            $this->getApi()->request('/api/estimates/'.$estimate->id.'/emails','POST',
+            $this->getApi()->request('/api/'.$this->options['document_type'].'s/'.$document->id.'/emails','POST',
                 json_encode($mail)
             );
         }
