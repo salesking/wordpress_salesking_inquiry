@@ -30,7 +30,7 @@ class SkInquiry {
 
     private $options = null;
 
-    private $api = null;
+    private $apis = array();
 
     private $products = null;
 
@@ -38,7 +38,9 @@ class SkInquiry {
 
     private $emailTemplates = null;
 
-    private $apiStatus = null;
+    private $apiStates = array();
+
+    private $systemMessage = null;
 
     /**
      * constructor, gets fired on every application start
@@ -46,10 +48,15 @@ class SkInquiry {
     public function __construct()
     {
         $this->options = get_option('skinquiry_options');
-        $this->api = $this->initApi();
 
         // determine current application context
         if(is_admin()) {
+            if($_GET['page'] == 'skinquiry') {
+                if(!$this->systemCheck()) {
+                    add_action('admin_notices', array($this, 'setSystemMessage'));
+                }
+            }
+
             // call backend code
             add_action( 'admin_init', array($this, 'adminInit') );
             add_action( 'admin_menu', array($this, 'adminMenu') );
@@ -77,6 +84,43 @@ class SkInquiry {
     }
 
     /**
+     * checks current system status
+     * @return bool
+     */
+    private function systemCheck() {
+        if (!version_compare( PHP_VERSION, '5.3.0', '>=' )) {
+            $this->systemMessage = 'Outdated PHP Version';
+            return false;
+        }
+
+        if (!in_array('curl', get_loaded_extensions())) {
+            $this->systemMessage = 'curl extension not available';
+            return false;
+        }
+
+        if (!$this->getApiStatus()) {
+            $this->systemMessage = 'Invalid SalesKing credentials';
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     *  callback function to output a system message in admin area
+     */
+    public function setSystemMessage() {
+        echo '<div class="error">'.$this->systemMessage.'</div>';
+    }
+
+    /***
+     * add admin menu item
+     */
+    public function adminMenu() {
+        add_options_page('SalesKing Inquiry Settings', 'SkInquiry', 'manage_options', 'skinquiry', array($this, 'adminDisplay'));
+    }
+
+    /**
      * gets executed when viewing the admin panel and sets up the plugin options
      */
     public function adminInit()
@@ -87,35 +131,16 @@ class SkInquiry {
         add_settings_field('skinquiry_sk_url', 'SalesKing URL', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_url"));
         add_settings_field('skinquiry_sk_username', 'SalesKing Username', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_username"));
         add_settings_field('skinquiry_sk_password', 'SalesKing Password', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_password"));
-        add_settings_field('skinquiry_products_tag', 'Products Tag', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_products_tag"));
-        add_settings_field('skinquiry_client_tags', 'Client Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_client_tags"));
-        add_settings_field('skinquiry_estimate_tags', 'Estimate Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_estimate_tags"));
-        add_settings_field('skinquiry_emailtemplate', 'E-Mail Template', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_emailtemplate"));
-        add_settings_field('skinquiry_pdftemplate', 'PDF Template', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_pdftemplate"));
-        add_settings_field('skinquiry_notes_before', 'Notes Before', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_before"));
-        add_settings_field('skinquiry_notes_after', 'Notes After', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_after"));
 
-        // display error message if necessary
-        if($this->api == false) {
-            add_action('admin_notices', array($this, 'outputCurlMessage'));
-        }
-
-        // display
-
-    }
-
-    public function outputCurlMessage() {
-        echo '<div class="error">Could not SalesKing API - Please make sure that all system requirements (curl) are meet</div>';
-    }
-
-    /**
-     *
-     */
-    public function frontendInit() {
-        if($_POST['skinquiry_sentform'] == 1) {
-            if($this->validate()) {
-                $this->send();
-            }
+        // hide all other settings as long as the api is not ready
+        if($this->getApiStatus() && $this->options['sk_url'] && $this->options['sk_password'] && $this->options['sk_username']) {
+            add_settings_field('skinquiry_products_tag', 'Products Tag', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_products_tag"));
+            add_settings_field('skinquiry_client_tags', 'Client Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_client_tags"));
+            add_settings_field('skinquiry_estimate_tags', 'Estimate Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_estimate_tags"));
+            add_settings_field('skinquiry_emailtemplate', 'E-Mail Template', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_emailtemplate"));
+            add_settings_field('skinquiry_pdftemplate', 'PDF Template', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_pdftemplate"));
+            add_settings_field('skinquiry_notes_before', 'Notes Before', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_before"));
+            add_settings_field('skinquiry_notes_after', 'Notes After', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_after"));
         }
     }
 
@@ -215,14 +240,240 @@ class SkInquiry {
     }
 
     /**
+     * generate settings form
+     */
+    public function adminDisplay() {
+        ?>
+            <div class="wrap">
+                <?php screen_icon(); ?>
+                <h2>SalesKing Inquiry Plugin</h2>
+
+                <form action="options.php" method="post">
+                    <?php settings_fields('skinquiry_options'); ?>
+                    <?php do_settings_sections('skinquiry'); ?>
+
+                    <input name="Submit" type="submit" class="button button-primary" value="<?php esc_attr_e('Save Changes'); ?>" />
+                </form>
+            </div>
+        <?php
+    }
+
+    /**
+     * generate settings header
+     * @return null
+     */
+    public function adminSettingsDisplay() {
+        return null;
+    }
+
+    /**
+     * @param $input
+     *
+     * @return mixed
+     */
+    public function validateSettings($input) {
+        // delete cached products
+        delete_transient('skinquiry_products');
+
+        if($input['sk_url'] OR $input['sk_username'] OR $input['sk_password']) {
+            if(!$this->getApiStatus($input['sk_url'], $input['sk_username'], $input['sk_password'])) {
+                $input['sk_url'] = '';
+                $input['sk_username'] = '';
+                $input['sk_password'] = '';
+            }
+        }
+
+        return $input;
+    }
+
+    /**
+     * set up Salesking PHP library
+     * @param $sk_url string
+     * @param $sk_username string
+     * @param $sk_password string
+     * @return bool|Salesking
+     */
+    private function getApi($sk_url = null, $sk_username = null, $sk_password = null) {
+        $sk_url = ($sk_url == null) ? $this->options['sk_url'] : $sk_url;
+        $sk_username = ($sk_username == null) ? $this->options['sk_username'] : $sk_username;
+        $sk_password = ($sk_password == null) ? $this->options['sk_password'] : $sk_password;
+
+        // create a unique instance for every credential combinatin
+        $hash = md5($sk_url.$sk_username.$sk_password);
+
+        if(!array_key_exists($hash, $this->apis)) {
+            // make sure that curl is available
+            if(!in_array('curl', get_loaded_extensions())) {
+                return false;
+            }
+
+            // make sure that curl is available
+            if(!in_array('curl', get_loaded_extensions())) {
+                return false;
+            }
+
+            require_once dirname(__FILE__).'/lib/salesking/salesking.php';
+
+            // set up object
+            $config = array(
+                "sk_url" => $sk_url,
+                "user" => $sk_username,
+                "password" => $sk_password
+            );
+
+            $this->apis[$hash] = new Salesking($config);
+        }
+
+        return $this->apis[$hash];
+
+
+    }
+
+    /**
+     * fetch current api status
+     * @return bool
+     */
+    private function getApiStatus($sk_url = null, $sk_username = null, $sk_password = null) {
+        // check if credentials are provided and switch to default values
+        $sk_url = ($sk_url == null) ? $this->options['sk_url'] : $sk_url;
+        $sk_username = ($sk_username == null) ? $this->options['sk_username'] : $sk_username;
+        $sk_password = ($sk_password == null) ? $this->options['sk_password'] : $sk_password;
+
+        // create a unique instance for every credential combinatin
+        $hash = md5($sk_url.$sk_username.$sk_password);
+
+        if(!array_key_exists($hash, $this->apiStates))
+        {
+            if ($sk_url && $sk_username && $sk_password) {
+                try {
+                    $response = $this->getApi($sk_url, $sk_username, $sk_password)->request("/api/users/current");
+                }
+                catch (SaleskingException $e) {
+                    $this->apiStates[$hash] = false;
+                }
+
+                if($response['code'] == '200') {
+                    if(property_exists($response['body'],'user')) {
+                        $this->apiStates[$hash] = true;
+                    }
+                }
+                else
+                {
+                    $this->apiStates[$hash] = false;
+                }
+            }
+            else
+            {
+                $this->apiStates[$hash] = true;
+            }
+        }
+
+        return $this->apiStates[$hash];
+    }
+
+    /**
+     * return products from caching layers
+     * @return bool|null
+     */
+    private function getProducts() {
+        // cached in memory?
+        if($this->products == null) {
+            // cached in db?
+            if ( false === ( $products = get_transient( 'skinquiry_products' ) ) ) {
+                // fetch from api and cache in db
+                $products = $this->fetchProducts();
+                set_transient('skinquiry_products', $products, 60*60);
+            }
+
+            // cache in memory
+            $this->products = $products;
+        }
+
+        return $this->products;
+    }
+
+    /**
+     * fetch products from api
+     * @return bool
+     */
+    protected function fetchProducts() {
+        $products = $this->getApi()->getCollection(array(
+                'type' => 'product',
+                'autoload' => true
+            ));
+
+        // filter products for specific tags
+        try {
+            $this->products = $products->tags($this->options['products_tag'])->load()->getItems();
+        }
+        catch (SaleskingException $e) {
+            return false;
+        }
+
+        return $this->products;
+    }
+
+    /**
+     * fetch pdf templates
+     * @return bool|SaleskingCollection
+     */
+    protected function fetchPdfTemplates() {
+        if($this->pdfTemplates == null) {
+            $templates = $this->getApi()->getCollection(array(
+                    'type' => 'pdf_template',
+                    'autoload' => true
+                ));
+
+            try {
+                $this->pdfTemplates = $templates->load()->getItems();
+            }
+            catch (SaleskingException $e) {
+                return false;
+            }
+        }
+
+        return $this->pdfTemplates;
+    }
+
+    /**
+     * fetch email templates
+     * @return bool|SaleskingCollection
+     *
+     */
+    protected function fetchEmailTemplates() {
+        if($this->emailTemplates == null) {
+
+            $templates = $this->getApi()->getCollection(array(
+                    'type' => 'email_template',
+                    'autoload' => true
+                ));
+
+            try {
+                $this->emailTemplates = $templates->load()->getItems();
+            }
+            catch (SaleskingException $e) {
+                return false;
+            }
+        }
+
+        return $this->emailTemplates;
+    }
+
+    /**
+     * initialize frontend
+     */
+    public function frontendInit() {
+        if($_POST['skinquiry_sentform'] == 1) {
+            if($this->validate()) {
+                $this->send();
+            }
+        }
+    }
+
+    /**
      * @return string html output
      */
     public function frontendDisplay() {
-        // make sure that the api is alright
-        if($this->api == false) {
-            return;
-        }
-
         // load jquery and
         wp_enqueue_script( 'jquery' );
         wp_enqueue_script( 'skinquiry', plugins_url('js/skinquiry.js', __FILE__ ));
@@ -284,11 +535,11 @@ class SkInquiry {
                         <label for="skinquiry_products_0_product">Product</label>
                         <select id="skinquiry_products_0_product" name="skinquiry_products[0][product]">';
 
-                        foreach($products as $product) {
-                            $content .= '<option value="'.$product->id.'">'.$product->name.'</option>';
-                        }
+        foreach($products as $product) {
+            $content .= '<option value="'.$product->id.'">'.$product->name.'</option>';
+        }
 
-                        $content .= '</select>
+        $content .= '</select>
                         <label for="skinquiry_products_0_quantity">Quantity</label>
                         <input id="skinquiry_products_0_quantity" name="skinquiry_products[0][quantity]" value="1" type="text" />
                         <span class="skinquiry_delete">Remove</span>
@@ -311,199 +562,15 @@ class SkInquiry {
     }
 
     /**
-     * generate settings form
-     */
-    public function adminDisplay() {
-        ?>
-            <div class="wrap">
-                <?php screen_icon(); ?>
-                <h2>SalesKing Inquiry Plugin</h2>
-                <?php if($this->api != false): ?>
-
-                <form action="options.php" method="post">
-                    <?php settings_fields('skinquiry_options'); ?>
-                    <?php do_settings_sections('skinquiry'); ?>
-
-                    <input name="Submit" type="submit" class="button button-primary" value="<?php esc_attr_e('Save Changes'); ?>" />
-                </form>
-
-                <?php endif; ?>
-            </div>
-        <?php
-    }
-
-    /**
-     * generate settings header
-     * @return null
-     */
-    public function adminSettingsDisplay() {
-        return null;
-    }
-
-    /**
-     * @param $input
-     *
-     * @return mixed
-     */
-    public function validateSettings($input) {
-        // delete cached products
-        delete_transient('skinquiry_products');
-
-        return $input;
-    }
-
-    /***
-     * add admin menu item
-     */
-    public function adminMenu() {
-        add_options_page('SalesKing Inquiry Settings', 'SkInquiry', 'manage_options', 'skinquiry', array($this, 'adminDisplay'));
-    }
-
-    /**
-     * set up Salesking PHP library
-     * @return bool|Salesking
-     */
-    public function initApi() {
-        // make sure that curl is available
-        if(!in_array('curl', get_loaded_extensions())) {
-            return false;
-        }
-
-        require_once dirname(__FILE__).'/lib/salesking/salesking.php';
-
-        // set up object
-        $config = array(
-            "sk_url" => $this->options['sk_url'],
-            "user" => $this->options['sk_username'],
-            "password" => $this->options['sk_password']
-        );
-
-        return new Salesking($config);
-    }
-
-    /**
-     * fetch current api status
-     * @return bool
-     */
-    public function getApiStatus() {
-        if($this->apiStatus == null && $this->options['sk_url'] && $this->options['sk_username'] && $this->options['sk_password'])
-        {
-            try {
-                $response = $this->api->request("/api/users/current");
-            }
-            catch (SaleskingException $e) {
-                $this->apiStatus = false;
-                return self::$apiStatus;
-            }
-
-            if($response['code'] = '200' AND property_exists($response['body'],'user')) {
-                $this->apiStatus = true;
-            }
-            else
-            {
-                $this->apiStatus = false;
-            }
-        }
-    }
-
-    /**
-     * return products from caching layers
-     * @return bool|null
-     */
-    public function getProducts() {
-        // cached in memory?
-        if($this->products == null) {
-            // cached in db?
-            if ( false === ( $products = get_transient( 'skinquiry_products' ) ) ) {
-                // fetch from api and cache in db
-                $products = $this->fetchProducts();
-                set_transient('skinquiry_products', $products, 60*60);
-            }
-
-            // cache in memory
-            $this->products = $products;
-        }
-
-        return $this->products;
-    }
-
-    /**
-     * fetch products from api
-     * @return bool
-     */
-    public function fetchProducts() {
-        $products = $this->api->getCollection(array(
-                'type' => 'product',
-                'autoload' => true
-            ));
-
-        // filter products for specific tags
-        try {
-            $this->products = $products->tags($this->options['products_tag'])->load()->getItems();
-        }
-        catch (SaleskingException $e) {
-            return false;
-        }
-
-        return $this->products;
-    }
-
-    /**
-     * fetch pdf templates
-     * @return bool|SaleskingCollection
-     */
-    public function fetchPdfTemplates() {
-        if($this->pdfTemplates == null) {
-            $templates = $this->api->getCollection(array(
-                    'type' => 'pdf_template',
-                    'autoload' => true
-                ));
-
-            try {
-                $this->pdfTemplates = $templates->load()->getItems();
-            }
-            catch (SaleskingException $e) {
-                return false;
-            }
-        }
-
-        return $this->pdfTemplates;
-    }
-
-    /**
-     * fetch email templates
-     * @return bool|SaleskingCollection
-     *
-     */
-    public function fetchEmailTemplates() {
-        if($this->emailTemplates == null) {
-
-            $templates = $this->api->getCollection(array(
-                    'type' => 'email_template',
-                    'autoload' => true
-                ));
-
-            try {
-                $this->emailTemplates = $templates->load()->getItems();
-            }
-            catch (SaleskingException $e) {
-                return false;
-            }
-        }
-
-        return $this->emailTemplates;
-    }
-
-    /**
      * submit entered information to salesking api
      * @return bool
      */
-    public function send() {
+    private function send() {
         // set up objects
-        $address = $this->api->getObject('address');
-        $client = $this->api->getObject('client');
-        $estimate = $this->api->getObject('estimate');
-        $comment = $this->api->getObject('comment');
+        $address = $this->getApi()->getObject('address');
+        $client = $this->getApi()->getObject('client');
+        $estimate = $this->getApi()->getObject('estimate');
+        $comment = $this->getApi()->getObject('comment');
 
         // bind address data
         try {
@@ -551,7 +618,7 @@ class SkInquiry {
         // generate a line_item object for each product
         foreach($_POST['skinquiry_products'] as $product) {
             try {
-                $item = $this->api->getObject("line_item");
+                $item = $this->getApi()->getObject("line_item");
                 $item->position = $i;
                 $item->product_id = $product['product'];
                 $item->use_product = true;
@@ -602,7 +669,7 @@ class SkInquiry {
 
         // generate pdf
         try {
-            $this->api->request('/api/estimates/'.$estimate->id.'/print','POST',
+            $this->getApi()->request('/api/estimates/'.$estimate->id.'/print','POST',
                 json_encode(array(
                     "template_id" => $this->options['pdftemplate']
                 ))
@@ -624,7 +691,7 @@ class SkInquiry {
             $mail->template_id = $this->options['emailtemplate'];
 
             // create mail and send to client
-            $this->api->request('/api/estimates/'.$estimate->id.'/emails','POST',
+            $this->getApi()->request('/api/estimates/'.$estimate->id.'/emails','POST',
                 json_encode($mail)
             );
         }
@@ -639,7 +706,7 @@ class SkInquiry {
      * validate frontend inputs
      * @return bool
      */
-    public function validate() {
+    private function validate() {
 
         // last name is set
         if(!isset($_POST['skinquiry_client_last_name'])) {
