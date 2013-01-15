@@ -137,6 +137,7 @@ class SkInquiry {
             add_settings_field('skinquiry_products_tag', 'Products Tag', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_products_tag"));
             add_settings_field('skinquiry_client_tags', 'Client Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_client_tags"));
             add_settings_field('skinquiry_estimate_tags', 'Estimate Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_estimate_tags"));
+            add_settings_field('skinquiry_redirect_url', 'Redirect URL', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_redirect_url"));
             add_settings_field('skinquiry_emailtemplate', 'E-Mail Template', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_emailtemplate"));
             add_settings_field('skinquiry_pdftemplate', 'PDF Template', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_pdftemplate"));
             add_settings_field('skinquiry_notes_before', 'Notes Before', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_before"));
@@ -180,6 +181,12 @@ class SkInquiry {
             case "skinquiry_estimate_tags":
                 echo '<input id="skinquiry_estimate_tags" name="skinquiry_options[estimate_tags]" size="40" type="text" value="'.$this->options['estimate_tags'].'" />';
                 break;
+
+            // redirect url
+            case "skinquiry_redirect_url":
+                echo '<input id="skinquiry_redirect_url" name="skinquiry_options[redirect_url]" size="40" type="text" value="'.$this->options['redirect_url'].'" />';
+                break;
+
 
             // emailtemplate select list
             case "skinquiry_emailtemplate":
@@ -481,6 +488,10 @@ class SkInquiry {
      * @return string html output
      */
     public function frontendDisplay() {
+        if(!$this->getApiStatus() OR !$this->options['sk_username'] OR !$this->options['sk_url'] OR !$this->options['sk_password']) {
+            return null;
+        }
+
         // load jquery and
         wp_enqueue_script( 'jquery' );
         wp_enqueue_script( 'skinquiry', plugins_url('js/skinquiry.js', __FILE__ ));
@@ -704,6 +715,10 @@ class SkInquiry {
         }
         catch (SaleskingException $e) {
             return false;
+        }
+
+        if($this->options['redirect_url']) {
+            wp_redirect($this->options['redirect_url']);
         }
 
         return true;
