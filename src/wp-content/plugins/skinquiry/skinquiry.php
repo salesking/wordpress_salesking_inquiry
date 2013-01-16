@@ -2,7 +2,7 @@
 /**
 * Plugin Name: SkInquiry
 * Plugin URI: http://github.com/salesking/SkInquiryWP
-* Description: This plugin allows you to create a form for Salesking inquiries on you page
+* Description: This plugin allows you to create a form for Salesking docs on you page
 * Version: 1.0.0
 * Author: David Jardin
 * Author URI: http://www.djumla.de
@@ -50,9 +50,9 @@ class SkInquiry {
         $this->options = get_option('skinquiry_options');
 
         // determine current application context
-        if(is_admin()) {
-            if($_GET['page'] == 'skinquiry') {
-                if(!$this->systemCheck()) {
+        if (is_admin()) {
+            if ($_GET['page'] == 'skinquiry') {
+                if (!$this->systemCheck()) {
                     add_action('admin_notices', array($this, 'setSystemMessage'));
                 }
             }
@@ -89,17 +89,17 @@ class SkInquiry {
      */
     private function systemCheck() {
         if (!version_compare( PHP_VERSION, '5.3.0', '>=' )) {
-            $this->systemMessage = 'Outdated PHP Version';
+            $this->systemMessage = __('Outdated PHP Version', 'skinquiry' );
             return false;
         }
 
         if (!in_array('curl', get_loaded_extensions())) {
-            $this->systemMessage = 'curl extension not available';
+            $this->systemMessage = __('curl extension not available', 'skinquiry' );
             return false;
         }
 
         if (!$this->getApiStatus()) {
-            $this->systemMessage = 'Invalid SalesKing credentials';
+            $this->systemMessage = __('Invalid SalesKing credentials', 'skinquiry' );
             return false;
         }
 
@@ -117,7 +117,7 @@ class SkInquiry {
      * add admin menu item
      */
     public function adminMenu() {
-        add_options_page('SalesKing Inquiry Settings', 'SkInquiry', 'manage_options', 'skinquiry', array($this, 'adminDisplay'));
+        add_options_page(__('SalesKing Inquiry Settings', 'skinquiry' ), 'SkInquiry', 'manage_options', 'skinquiry', array($this, 'adminDisplay'));
     }
 
     /**
@@ -127,23 +127,23 @@ class SkInquiry {
     {
         // set up plugin options using wp options API
         register_setting( 'skinquiry_options', 'skinquiry_options', array($this, 'validateSettings') );
-        add_settings_section('skinquiry_main', 'Main Settings', array($this, 'adminSettingsDisplay') , 'skinquiry');
-        add_settings_field('skinquiry_sk_url', 'SalesKing URL', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_url"));
-        add_settings_field('skinquiry_sk_username', 'SalesKing Username', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_username"));
-        add_settings_field('skinquiry_sk_password', 'SalesKing Password', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_password"));
+        add_settings_section('skinquiry_main', __('Main Settings', 'skinquiry' ), array($this, 'adminSettingsDisplay') , 'skinquiry');
+        add_settings_field('skinquiry_sk_url', __('SalesKing URL', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_url"));
+        add_settings_field('skinquiry_sk_username', __('SalesKing Username', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_username"));
+        add_settings_field('skinquiry_sk_password', __('SalesKing Password', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_password"));
 
         // hide all other settings as long as the api is not ready
-        if($this->getApiStatus() && $this->options['sk_url'] && $this->options['sk_password'] && $this->options['sk_username']) {
-            add_settings_field('skinquiry_document_type', 'Document Type', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_document_type"));
-            add_settings_field('skinquiry_products_tag', 'Products Tag', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_products_tag"));
-            add_settings_field('skinquiry_client_tags', 'Client Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_client_tags"));
-            add_settings_field('skinquiry_document_tags', 'Document Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_document_tags"));
-            add_settings_field('skinquiry_redirect_url', 'Redirect URL', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_redirect_url"));
-            add_settings_field('skinquiry_use_captcha', 'Use Captcha', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_use_captcha"));
-            add_settings_field('skinquiry_emailtemplate', 'E-Mail Template', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_emailtemplate"));
-            add_settings_field('skinquiry_pdftemplate', 'PDF Template', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_pdftemplate"));
-            add_settings_field('skinquiry_notes_before', 'Notes Before', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_before"));
-            add_settings_field('skinquiry_notes_after', 'Notes After', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_after"));
+        if ($this->getApiStatus() && $this->options['sk_url'] && $this->options['sk_password'] && $this->options['sk_username']) {
+            add_settings_field('skinquiry_document_type', __('Document Type', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_document_type"));
+            add_settings_field('skinquiry_products_tag', __('Products Tag', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_products_tag"));
+            add_settings_field('skinquiry_client_tags', __('Client Tags', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_client_tags"));
+            add_settings_field('skinquiry_document_tags', __('Document Tags', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_document_tags"));
+            add_settings_field('skinquiry_redirect_url', __('Redirect URL', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_redirect_url"));
+            add_settings_field('skinquiry_use_captcha', __('Use Captcha', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_use_captcha"));
+            add_settings_field('skinquiry_emailtemplate', __('E-Mail Template', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_emailtemplate"));
+            add_settings_field('skinquiry_pdftemplate', __('PDF Template', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_pdftemplate"));
+            add_settings_field('skinquiry_notes_before', __('Notes Before', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_before"));
+            add_settings_field('skinquiry_notes_after', __('Notes After', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_after"));
         }
     }
 
@@ -174,13 +174,13 @@ class SkInquiry {
                 echo '<select id="skinquiry_document_type" name="skinquiry_options[document_type]" >';
 
                 $checked = ($this->options['document_type'] == 'estimate') ? 'selected="selected"' : '';
-                echo '<option '.$checked.' value="estimate">Estimate</option>';
+                echo '<option '.$checked.' value="estimate">'.__('Estimate', 'skinquiry' ).'</option>';
 
                 $checked = ($this->options['document_type'] == 'order') ? 'selected="selected"' : '';
-                echo '<option '.$checked.' value="order">Order</option>';
+                echo '<option '.$checked.' value="order">'.__('Order', 'skinquiry' ).'</option>';
 
                 $checked = ($this->options['document_type'] == 'invoice') ? 'selected="selected"' : '';
-                echo '<option '.$checked.' value="invoice">Invoice</option>';
+                echo '<option '.$checked.' value="invoice">'.__('Invoice', 'skinquiry' ).'</option>';
 
                 echo '</select>';
                 break;
@@ -207,12 +207,12 @@ class SkInquiry {
 
             // use captcha
             case "skinquiry_use_captcha":
-                if(class_exists('ReallySimpleCaptcha')) {
+                if (class_exists('ReallySimpleCaptcha')) {
                     $checked = ($this->options['use_captcha'] == 1) ? 'checked="checked"'  : '';
                     echo '<input id="skinquiry_use_captcha" name="skinquiry_options[use_captcha]" type="checkbox" value="1" '.$checked.' />';
                 }
                 else {
-                    echo 'Please install the plugin "ReallySimpleCaptcha" to enable this function';
+                    echo __('Please install the plugin "ReallySimpleCaptcha" to enable this function', 'skinquiry' );
                     echo '<input id="skinquiry_use_captcha" name="skinquiry_options[use_captcha]" type="hidden" value="0" />';
                 }
 
@@ -220,14 +220,14 @@ class SkInquiry {
 
             // emailtemplate select list
             case "skinquiry_emailtemplate":
-                echo '<select id="skinquiry_emailtemplate" name="skinquiry_options[emailtemplate]" />';
+                echo '<select id="skinquiry_emailtemplate" name="skinquiry_options[emailtemplate]" >';
 
                 // fetch email templates
                 $templates = $this->fetchEmailTemplates();
 
                 // error while fetching, create default value
-                if($templates == false) {
-                    echo '<option value="">-- Could not fetch Templates --</value>';
+                if ($templates == false) {
+                    echo '<option value="">-- '.__('Could not fetch Templates', 'skinquiry' ).' --</value>';
                 }
                 else
                 {
@@ -243,14 +243,14 @@ class SkInquiry {
 
             // pdftemplate select list
             case "skinquiry_pdftemplate":
-                echo '<select id="skinquiry_pdftemplate" name="skinquiry_options[pdftemplate]" />';
+                echo '<select id="skinquiry_pdftemplate" name="skinquiry_options[pdftemplate]" >';
 
                 // fetch email templates
                 $templates = $this->fetchPdfTemplates();
 
                 // error while fetching, create default value
-                if($templates == false) {
-                        echo '<option value="">-- Could not fetch Templates --</value>';
+                if ($templates == false) {
+                        echo '<option value="">-- '.__('Could not fetch Templates', 'skinquiry' ).' --</value>';
                 }
                 else
                 {
@@ -283,13 +283,13 @@ class SkInquiry {
         ?>
             <div class="wrap">
                 <?php screen_icon(); ?>
-                <h2>SalesKing Inquiry Plugin</h2>
+                <h2><?php echo __('SalesKing Inquiry Plugin', 'skinquiry' ); ?></h2>
 
                 <form action="options.php" method="post">
                     <?php settings_fields('skinquiry_options'); ?>
                     <?php do_settings_sections('skinquiry'); ?>
 
-                    <input name="Submit" type="submit" class="button button-primary" value="<?php esc_attr_e('Save Changes'); ?>" />
+                    <input name="Submit" type="submit" class="button button-primary" value="<?php __('Save Changes', 'skinquiry' ); ?>" />
                 </form>
             </div>
         <?php
@@ -300,7 +300,7 @@ class SkInquiry {
      * @return null
      */
     public function adminSettingsDisplay() {
-        if($this->options['message'] && $_GET['settings-updated'] == "true") {
+        if ($this->options['message'] && $_GET['settings-updated'] == "true") {
             ?>
             <div class="error"><?php echo $this->options['message']; ?></div>
             <?php
@@ -308,7 +308,7 @@ class SkInquiry {
     }
 
     /**
-     * @param $input
+     * @param $input array
      *
      * @return mixed
      */
@@ -316,13 +316,13 @@ class SkInquiry {
         // delete cached products
         delete_transient('skinquiry_products');
 
-        if($input['sk_url'] OR $input['sk_username'] OR $input['sk_password']) {
-            if(!$this->getApiStatus($input['sk_url'], $input['sk_username'], $input['sk_password'])) {
+        if ($input['sk_url'] OR $input['sk_username'] OR $input['sk_password']) {
+            if (!$this->getApiStatus($input['sk_url'], $input['sk_username'], $input['sk_password'])) {
                 $input['sk_url'] = '';
                 $input['sk_username'] = '';
                 $input['sk_password'] = '';
 
-                $input['message'] = 'Invalid credentials';
+                $input['message'] = __('Invalid credentials', 'skinquiry' );
             }
         }
 
@@ -331,9 +331,9 @@ class SkInquiry {
 
     /**
      * set up Salesking PHP library
-     * @param $sk_url string
-     * @param $sk_username string
-     * @param $sk_password string
+     * @param $sk_url 
+     * @param $sk_username
+     * @param $sk_password
      * @return bool|Salesking
      */
     private function getApi($sk_url = null, $sk_username = null, $sk_password = null) {
@@ -345,14 +345,14 @@ class SkInquiry {
         // create a unique instance for every credential combination
         $hash = md5($sk_url.$sk_username.$sk_password);
 
-        if(!array_key_exists($hash, $this->apis)) {
+        if (!array_key_exists($hash, $this->apis)) {
             // make sure that curl is available
-            if(!in_array('curl', get_loaded_extensions())) {
+            if (!in_array('curl', get_loaded_extensions())) {
                 return false;
             }
 
             // make sure that curl is available
-            if(!in_array('curl', get_loaded_extensions())) {
+            if (!in_array('curl', get_loaded_extensions())) {
                 return false;
             }
 
@@ -374,7 +374,11 @@ class SkInquiry {
     }
 
     /**
+     *
      * fetch current api status
+     * @param $sk_url string
+     * @param $sk_username string
+     * @param $sk_password string
      * @return bool
      */
     private function getApiStatus($sk_url = null, $sk_username = null, $sk_password = null) {
@@ -386,7 +390,7 @@ class SkInquiry {
         // create a unique instance for every credential combination
         $hash = md5($sk_url.$sk_username.$sk_password);
 
-        if(!array_key_exists($hash, $this->apiStates))
+        if (!array_key_exists($hash, $this->apiStates))
         {
             if ($sk_url && $sk_username && $sk_password) {
                 try {
@@ -396,8 +400,8 @@ class SkInquiry {
                     $this->apiStates[$hash] = false;
                 }
 
-                if($response['code'] == '200') {
-                    if(property_exists($response['body'],'user')) {
+                if ($response['code'] == '200') {
+                    if (property_exists($response['body'],'user')) {
                         $this->apiStates[$hash] = true;
                     }
                 }
@@ -421,7 +425,7 @@ class SkInquiry {
      */
     private function getProducts() {
         // cached in memory?
-        if($this->products == null) {
+        if ($this->products == null) {
             // cached in db?
             if ( false === ( $products = get_transient( 'skinquiry_products' ) ) ) {
                 // fetch from api and cache in db
@@ -462,7 +466,7 @@ class SkInquiry {
      * @return bool|SaleskingCollection
      */
     protected function fetchPdfTemplates() {
-        if($this->pdfTemplates == null) {
+        if ($this->pdfTemplates == null) {
             $templates = $this->getApi()->getCollection(array(
                     'type' => 'pdf_template',
                     'autoload' => true
@@ -485,7 +489,7 @@ class SkInquiry {
      *
      */
     protected function fetchEmailTemplates() {
-        if($this->emailTemplates == null) {
+        if ($this->emailTemplates == null) {
 
             $templates = $this->getApi()->getCollection(array(
                     'type' => 'email_template',
@@ -507,8 +511,8 @@ class SkInquiry {
      * initialize frontend
      */
     public function frontendInit() {
-        if($_POST['skinquiry_sentform'] == 1) {
-            if($this->validate()) {
+        if ($_POST['skinquiry_sentform'] == 1) {
+            if ($this->validate()) {
                 $this->send();
             }
         }
@@ -518,7 +522,7 @@ class SkInquiry {
      * @return string html output
      */
     public function frontendDisplay() {
-        if(!$this->getApiStatus() OR !$this->options['sk_username'] OR !$this->options['sk_url'] OR !$this->options['sk_password']) {
+        if (!$this->getApiStatus() OR !$this->options['sk_username'] OR !$this->options['sk_url'] OR !$this->options['sk_password']) {
             return null;
         }
 
@@ -532,10 +536,10 @@ class SkInquiry {
         $products = $this->getProducts();
 
         // no products found so we have to create a dummy
-        if(!count($products)) {
+        if (!count($products)) {
             $placeholder = new stdClass();
             $placeholder->id = "";
-            $placeholder->name = "-- No Products found --";
+            $placeholder->name = "-- ".__('No Products found', 'skinquiry' )." --";
             $placeholder->price = "";
             $placeholder->tax = "";
             $placeholder->number = "";
@@ -547,7 +551,7 @@ class SkInquiry {
 
         // fetch captcha
         $captcha = false;
-        if($this->options['use_captcha'] == 1 AND class_exists('ReallySimpleCaptcha')) {
+        if ($this->options['use_captcha'] == 1 AND class_exists('ReallySimpleCaptcha')) {
             $captcha = new ReallySimpleCaptcha();
             $captcha->tmp_dir = dirname( __FILE__ ) . '/tmp/';
             $captchaPrefix = mt_rand();
@@ -565,63 +569,64 @@ class SkInquiry {
         $content .= '</select>
         <form method="post" id="skinquiry_form">
             <fieldset id="skinquiry_clientdetails">
-                <legend>Your Details</legend>
-                <label for="skinquiry_client_last_name">Last name*</label>
+                <legend>'.__('Your Details', 'skinquiry' ).'</legend>
+                <label for="skinquiry_client_last_name">'.__('Last name', 'skinquiry' ).'*</label>
                 <input name="skinquiry_client_last_name" type="text" id="skinquiry_client_last_name" required="required" />
-                <label for="skinquiry_client_first_name">First name*</label>
+                <label for="skinquiry_client_first_name">'.__('First name', 'skinquiry' ).'*</label>
                 <input name="skinquiry_client_first_name" type="text" id="skinquiry_client_first_name" required="required" />
-                <label for="skinquiry_client_organisation_name">Company</label>
+                <label for="skinquiry_client_organisation_name">'.__('Company', 'skinquiry' ).'</label>
                 <input name="skinquiry_client_organisation_name" type="text" id="skinquiry_client_organisation_name" />
-                <label for="skinquiry_client_email">E-Mail*</label>
+                <label for="skinquiry_client_email">'.__('E-Mail', 'skinquiry' ).'*</label>
                 <input name="skinquiry_client_email" type="text" id="skinquiry_client_email" required="required" />
-                <label for="skinquiry_client_phone">Phone</label>
+                <label for="skinquiry_client_phone">'.__('Phone', 'skinquiry' ).'</label>
                 <input name="skinquiry_client_phone" type="text" id="skinquiry_client_phone" />
-                <label for="skinquiry_client_address1">Address*</label>
+                <label for="skinquiry_client_address1">'.__('Address', 'skinquiry' ).'*</label>
                 <input name="skinquiry_client_address1" type="text" id="skinquiry_client_address1" required="required" />
-                <label for="skinquiry_client_zip">Zip*</label>
+                <label for="skinquiry_client_zip">'.__('Zip', 'skinquiry' ).'*</label>
                 <input name="skinquiry_client_zip" type="text" id="skinquiry_client_zip" required="required" />
-                <label for="skinquiry_client_city">City*</label>
+                <label for="skinquiry_client_city">'.__('City', 'skinquiry' ).'*</label>
                 <input name="skinquiry_client_city" type="text" id="skinquiry_client_city" required="required" />
-                <label for="skinquiry_client_country">Country*</label>
+                <label for="skinquiry_client_country">'.__('Country', 'skinquiry' ).'*</label>
                 <input name="skinquiry_client_country" type="text" id="skinquiry_client_country" required="required" />
             </fieldset>
             <fieldset>
-                <legend>Products</legend>
+                <legend>'.__('Products', 'skinquiry' ).'</legend>
                 <div id="skinquiry_productlist">
                     <div class="skinquiry_product" data-rowid="0">
-                        <label for="skinquiry_products_0_product">Product</label>
+                        <label for="skinquiry_products_0_product">'.__('Product', 'skinquiry' ).'</label>
                         <select id="skinquiry_products_0_product" name="skinquiry_products[0][product]">';
 
-        foreach($products as $product) {
-            $content .= '<option value="'.$product->id.'">'.$product->name.'</option>';
-        }
+                        foreach($products as $product) {
+                            $content .= '<option value="'.$product->id.'">'.$product->name.'</option>';
+                        }
 
-        $content .= '</select>
-                        <label for="skinquiry_products_0_quantity">Quantity</label>
+                        $content .= '</select>
+                        <label for="skinquiry_products_0_quantity">'.__('Quantity', 'skinquiry' ).'</label>
                         <input id="skinquiry_products_0_quantity" name="skinquiry_products[0][quantity]" value="1" type="text" />
-                        <span class="skinquiry_delete">Remove</span>
+                        <span class="skinquiry_delete">'.__('Remove', 'skinquiry' ).'</span>
                     </div>
                 </div>
-                <button id="skinquiry_addproduct">Add line item</button>
+                <button id="skinquiry_addproduct">'.__('Add line item', 'skinquiry' ).'</button>
             </fieldset>
             <fieldset>
-                <legend>Comment</legend>
-                <label for="skinquiry_comment">Your message for us</label>
+                <legend>'.__('Comment', 'skinquiry' ).'</legend>
+                <label for="skinquiry_comment">'.__('Your message for us', 'skinquiry' ).'</label>
                 <textarea id="skinquiry_comment" name="skinquiry_comment"></textarea>
             </fieldset>';
 
         // captcha
-        if($captcha) {
-            $content .= '<fieldset>
-                    <legend>Security Check</legend>
-                    <img src="'.plugins_url('tmp/'.$captchaImage, __FILE__ ).'" alt="captcha" /><br />
-                    <label for="skinquiry_captcha_word">Please enter the displayed word</label>
-                    <input type="text" required="required" id="skinquiry_captcha_word" name="skinquiry_captcha_word" value="" />
-                    <input type="hidden" id="skinquiry_captcha_prefix" name="skinquiry_captcha_prefix" value="'.$captchaPrefix.'" />
-                </fieldset>';
+        if ($captcha) {
+            $content .= '
+            <fieldset>
+                <legend>Security Check</legend>
+                <img src="'.plugins_url('tmp/'.$captchaImage, __FILE__ ).'" alt="captcha" /><br />
+                <label for="skinquiry_captcha_word">'.__('Please enter the displayed word', 'skinquiry' ).'</label>
+                <input type="text" required="required" id="skinquiry_captcha_word" name="skinquiry_captcha_word" value="" />
+                <input type="hidden" id="skinquiry_captcha_prefix" name="skinquiry_captcha_prefix" value="'.$captchaPrefix.'" />
+            </fieldset>';
         }
 
-        $content .= '<input type="submit" value="Request Inquiry" />
+        $content .= '<input type="submit" value="'.__('Request Document', 'skinquiry' ).'" />
             <input type="hidden" id="skinquiry_rowid" name="skinquiry_rowid" value="0" />
             <input type="hidden" id="skinquiry_sentform" name="skinquiry_sentform" value="1" />
         </form>';
@@ -723,7 +728,7 @@ class SkInquiry {
         }
 
         // set up comment
-        if(isset($_POST['skinquiry_comment']) AND trim($_POST['skinquiry_comment']) != "") {
+        if (isset($_POST['skinquiry_comment']) AND trim($_POST['skinquiry_comment']) != "") {
             try {
                 $comment->text = $_POST['skinquiry_comment'];
                 $comment->related_object_type = 'Document';
@@ -768,7 +773,7 @@ class SkInquiry {
             return false;
         }
 
-        if($this->options['redirect_url']) {
+        if ($this->options['redirect_url']) {
             wp_redirect($this->options['redirect_url']);
             exit();
         }
@@ -783,75 +788,75 @@ class SkInquiry {
     private function validate() {
 
         // last name is set
-        if(!isset($_POST['skinquiry_client_last_name'])) {
+        if (!isset($_POST['skinquiry_client_last_name'])) {
             return false;
         }
 
         // first name is set
-        if(!isset($_POST['skinquiry_client_first_name'])) {
+        if (!isset($_POST['skinquiry_client_first_name'])) {
             return false;
         }
 
         // email is set
-        if(!isset($_POST['skinquiry_client_email'])) {
+        if (!isset($_POST['skinquiry_client_email'])) {
             return false;
         }
 
         // email is valid
-        if(!preg_match("^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$^", $_POST['skinquiry_client_email'])) {
+        if (!preg_match("^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$^", $_POST['skinquiry_client_email'])) {
             return false;
         }
 
         // address is set
-        if(!isset($_POST['skinquiry_client_address1'])) {
+        if (!isset($_POST['skinquiry_client_address1'])) {
             return false;
         }
 
         // zip is set
-        if(!isset($_POST['skinquiry_client_zip'])) {
+        if (!isset($_POST['skinquiry_client_zip'])) {
             return false;
         }
 
         // city is set
-        if(!isset($_POST['skinquiry_client_city'])) {
+        if (!isset($_POST['skinquiry_client_city'])) {
             return false;
         }
 
         // country is set
-        if(!isset($_POST['skinquiry_client_country'])) {
+        if (!isset($_POST['skinquiry_client_country'])) {
             return false;
         }
 
         // we have at least one product
-        if(!isset($_POST['skinquiry_products'])) {
+        if (!isset($_POST['skinquiry_products'])) {
             return false;
         }
 
         // all products have an id and a quantity
         foreach($_POST['skinquiry_products'] as $product) {
-            if(!isset($product['product']) OR !isset($product['quantity'])) {
+            if (!isset($product['product']) OR !isset($product['quantity'])) {
                 return false;
             }
         }
 
         // check if the captcha is active
-        if($this->options['use_captcha'] == 1 AND class_exists('ReallySimpleCaptcha')) {
+        if ($this->options['use_captcha'] == 1 AND class_exists('ReallySimpleCaptcha')) {
             $captcha = new ReallySimpleCaptcha();
             $captcha->tmp_dir = dirname( __FILE__ ) . '/tmp/';
 
-            if(!$captcha->check( $_POST['skinquiry_captcha_prefix'], $_POST['skinquiry_captcha_word'] )) {
+            if (!$captcha->check( $_POST['skinquiry_captcha_prefix'], $_POST['skinquiry_captcha_word'] )) {
                 $captcha->remove( $_POST['skinquiry_captcha_prefix'] );
                 return false;
             }
 
-            $captcha->remove( $prefix );
+            $captcha->remove( $_POST['skinquiry_captcha_prefix'] );
         }
 
         return true;
     }
 }
 
-if(!function_exists('skinquiry_init_function')) {
+if (!function_exists('skinquiry_init_function')) {
     function skinquiry_init_function() {
         new SkInquiry();
     }
