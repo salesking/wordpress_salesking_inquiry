@@ -139,6 +139,7 @@ class SkInquiry {
             add_settings_field('skinquiry_client_tags', 'Client Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_client_tags"));
             add_settings_field('skinquiry_document_tags', 'Document Tags', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_document_tags"));
             add_settings_field('skinquiry_redirect_url', 'Redirect URL', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_redirect_url"));
+            add_settings_field('skinquiry_use_captcha', 'Use Captcha', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_use_captcha"));
             add_settings_field('skinquiry_emailtemplate', 'E-Mail Template', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_emailtemplate"));
             add_settings_field('skinquiry_pdftemplate', 'PDF Template', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_pdftemplate"));
             add_settings_field('skinquiry_notes_before', 'Notes Before', array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_notes_before"));
@@ -204,6 +205,18 @@ class SkInquiry {
                 echo '<input id="skinquiry_redirect_url" name="skinquiry_options[redirect_url]" size="40" type="text" value="'.$this->options['redirect_url'].'" />';
                 break;
 
+            // use captcha
+            case "skinquiry_use_captcha":
+                if(class_exists('ReallySimpleCaptcha')) {
+                    $checked = ($this->options['use_captcha'] == 1) ? 'checked="checked"'  : '';
+                    echo '<input id="skinquiry_use_captcha" name="skinquiry_options[use_captcha]" type="checkbox" value="1" '.$checked.' />';
+                }
+                else {
+                    echo 'Please install the plugin "ReallySimpleCaptcha" to enable this function';
+                    echo '<input id="skinquiry_use_captcha" name="skinquiry_options[use_captcha]" type="hidden" value="0" />';
+                }
+
+                break;
 
             // emailtemplate select list
             case "skinquiry_emailtemplate":
@@ -532,6 +545,15 @@ class SkInquiry {
             );
         }
 
+        // fetch captcha
+        $captcha = false;
+        if($this->options['use_captcha'] == 1 AND class_exists('ReallySimpleCaptcha')) {
+            $captcha = new ReallySimpleCaptcha();
+            $captcha->tmp_dir = dirname( __FILE__ ) . '/tmp/';
+            $captchaPrefix = mt_rand();
+            $captchaImage = $captcha->generate_image( $captchaPrefix, $captcha->generate_random_word() );
+        }
+
         // generate hidden select list which is used by the javascript
         $content = '<select id="skinquiry_products" aria-hidden="true" tabindex="-1">';
 
@@ -586,8 +608,20 @@ class SkInquiry {
                 <legend>Comment</legend>
                 <label for="skinquiry_comment">Your message for us</label>
                 <textarea id="skinquiry_comment" name="skinquiry_comment"></textarea>
-                <input type="submit" value="Request Inquiry" />
-            </fieldset>
+            </fieldset>';
+
+        // captcha
+        if($captcha) {
+            $content .= '<fieldset>
+                    <legend>Security Check</legend>
+                    <img src="'.plugins_url('tmp/'.$captchaImage, __FILE__ ).'" alt="captcha" /><br />
+                    <label for="skinquiry_captcha_word">Please enter the displayed word</label>
+                    <input type="text" required="required" id="skinquiry_captcha_word" name="skinquiry_captcha_word" value="" />
+                    <input type="hidden" id="skinquiry_captcha_prefix" name="skinquiry_captcha_prefix" value="'.$captchaPrefix.'" />
+                </fieldset>';
+        }
+
+        $content .= '<input type="submit" value="Request Inquiry" />
             <input type="hidden" id="skinquiry_rowid" name="skinquiry_rowid" value="0" />
             <input type="hidden" id="skinquiry_sentform" name="skinquiry_sentform" value="1" />
         </form>';
@@ -736,6 +770,7 @@ class SkInquiry {
 
         if($this->options['redirect_url']) {
             wp_redirect($this->options['redirect_url']);
+            exit();
         }
 
         return true;
@@ -797,6 +832,19 @@ class SkInquiry {
             if(!isset($product['product']) OR !isset($product['quantity'])) {
                 return false;
             }
+        }
+
+        // check if the captcha is active
+        if($this->options['use_captcha'] == 1 AND class_exists('ReallySimpleCaptcha')) {
+            $captcha = new ReallySimpleCaptcha();
+            $captcha->tmp_dir = dirname( __FILE__ ) . '/tmp/';
+
+            if(!$captcha->check( $_POST['skinquiry_captcha_prefix'], $_POST['skinquiry_captcha_word'] )) {
+                $captcha->remove( $_POST['skinquiry_captcha_prefix'] );
+                return false;
+            }
+
+            $captcha->remove( $prefix );
         }
 
         return true;
