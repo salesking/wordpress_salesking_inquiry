@@ -6,6 +6,7 @@
 * Version: 1.0.0
 * Author: David Jardin
 * Author URI: http://www.djumla.de
+* Text Domain: skinquiry
 * License: GPL3
 * Copyright 2012  David Jardin  (email : d.jardin@djumla.de)
 
@@ -48,6 +49,7 @@ class SkInquiry {
     public function __construct()
     {
         $this->options = get_option('skinquiry_options');
+        load_plugin_textdomain( 'skinquiry', false, basename(dirname(__FILE__)).'/languages/' );
 
         // determine current application context
         if (is_admin()) {
@@ -623,7 +625,7 @@ class SkInquiry {
         if ($captcha) {
             $content .= '
             <fieldset>
-                <legend>Security Check</legend>
+                <legend>'.__('Security Check', 'skinquiry' ).'</legend>
                 <img src="'.plugins_url('tmp/'.$captchaImage, __FILE__ ).'" alt="captcha" /><br />
                 <label for="skinquiry_captcha_word">'.__('Please enter the displayed word', 'skinquiry' ).'</label>
                 <input type="text" required="required" id="skinquiry_captcha_word" name="skinquiry_captcha_word" value="" />
