@@ -531,6 +531,11 @@ class SkInquiry {
         wp_enqueue_script( 'skinquiry', plugins_url('js/skinquiry.js', __FILE__ ));
         wp_enqueue_script( 'jquery_validation', plugins_url('js/jquery.validate.min.js', __FILE__ ));
         wp_enqueue_style( 'skinquiry', plugins_url('css/skinquiry.css', __FILE__ ));
+        wp_localize_script( 'skinquiry', 'objectL10n', array(
+            'product' => __( 'Product', 'skinquiry' ),
+            'remove' => __( 'Remove', 'skinquiry' ),
+            'quantity' => __( 'Quantity', 'skinquiry' ),
+        ) );
 
         // fetch products from api
         $products = $this->getProducts();
