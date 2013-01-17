@@ -1,5 +1,6 @@
 { "type":"object",
   "title": "text_template",
+  "name": "text_template",
   "description":"An text_template in SK",
   "properties":{
     "id":{
@@ -23,7 +24,7 @@
       "format":"text"
     },
     "kind":{
-      "description": "Kind of object in which the text is used. If empty the snippet can be used global, but watch the available placeholders.",
+      "description": "Kind of object the template can be used for. If empty the snippet can be used global. In this case watch not all placeholders are available: a client has different fields than an invoice.",
       "required":true,
       "enum": ["","invoice", "estimate", "credit_note", "payment_reminder", "order", "client", "email"],
       "type":"string"
