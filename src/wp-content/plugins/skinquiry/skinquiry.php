@@ -188,7 +188,8 @@ class SkInquiry {
                 echo '<option '.$checked.' value="invoice">'.__('Invoice', 'skinquiry' ).'</option>';
 
                 echo '</select>';
-                echo '<div class="description">'.__('Select which type of document should be created in your SalesKing Account', 'skinquiry').'</div>';
+                echo '<div class="description">'.__('Select which type of document should be created in your SalesKing Account', 'skinquiry').'<br />
+                '.__('NOTICE: If you change the document type, please make sure that you also choose a matching email and pdf template!', 'skinquiry').'</div>';
                 break;
 
             // products tag
