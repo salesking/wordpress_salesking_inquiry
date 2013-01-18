@@ -159,16 +159,19 @@ class SkInquiry {
             // url
             case "skinquiry_sk_url":
                 echo '<input id="skinquiry_sk_url" name="skinquiry_options[sk_url]" size="40" type="text" value="'.$this->options['sk_url'].'" />';
+                echo '<div class="description">'.__('The URL of your SalesKing installation, i.e. https://company.salesking.eu', 'skinquiry').'</div>';
                 break;
 
             // username
             case "skinquiry_sk_username":
                 echo '<input id="skinquiry_sk_username" name="skinquiry_options[sk_username]" size="40" type="text" value="'.$this->options['sk_username'].'" />';
+                echo '<div class="description">'.__('Your SalesKing username', 'skinquiry').'</div>';
                 break;
 
             // password
             case "skinquiry_sk_password":
                 echo '<input id="skinquiry_sk_password" name="skinquiry_options[sk_password]" size="40" type="password" value="'.$this->options['sk_password'].'" />';
+                echo '<div class="description">'.__('Your SalesKing password', 'skinquiry').'</div>';
                 break;
 
             // document type
@@ -185,26 +188,31 @@ class SkInquiry {
                 echo '<option '.$checked.' value="invoice">'.__('Invoice', 'skinquiry' ).'</option>';
 
                 echo '</select>';
+                echo '<div class="description">'.__('Select which type of document should be created in your SalesKing Account', 'skinquiry').'</div>';
                 break;
 
             // products tag
             case "skinquiry_products_tag":
                 echo '<input id="skinquiry_products_tag" name="skinquiry_options[products_tag]" size="40" type="text" value="'.$this->options['products_tag'].'" />';
+                echo '<div class="description">'.__('Enter a comma-separated list of tags that will be used to filter the displayed products in the form', 'skinquiry').'</div>';
                 break;
 
             // client tags
             case "skinquiry_client_tags":
                 echo '<input id="skinquiry_client_tags" name="skinquiry_options[client_tags]" size="40" type="text" value="'.$this->options['client_tags'].'" />';
+                echo '<div class="description">'.__('Enter a comma-separated list of tags that will be added to the new client in the SalesKing', 'skinquiry').'</div>';
                 break;
 
             // document tags
             case "skinquiry_document_tags":
                 echo '<input id="skinquiry_document_tags" name="skinquiry_options[document_tags]" size="40" type="text" value="'.$this->options['document_tags'].'" />';
+                echo '<div class="description">'.__('Enter a comma-separated list of tags that will be added to the new document in the SalesKing', 'skinquiry').'</div>';
                 break;
 
             // redirect url
             case "skinquiry_redirect_url":
                 echo '<input id="skinquiry_redirect_url" name="skinquiry_options[redirect_url]" size="40" type="text" value="'.$this->options['redirect_url'].'" />';
+                echo '<div class="description">'.__('The URL where the user gets redirected after successfully submitting the form', 'skinquiry').'</div>';
                 break;
 
             // use captcha
@@ -212,6 +220,7 @@ class SkInquiry {
                 if (class_exists('ReallySimpleCaptcha')) {
                     $checked = ($this->options['use_captcha'] == 1) ? 'checked="checked"'  : '';
                     echo '<input id="skinquiry_use_captcha" name="skinquiry_options[use_captcha]" type="checkbox" value="1" '.$checked.' />';
+                    echo '<div class="description">'.__('Display a captcha image to increase security', 'skinquiry').'</div>';
                 }
                 else {
                     echo __('Please install the plugin "ReallySimpleCaptcha" to enable this function', 'skinquiry' );
@@ -241,6 +250,7 @@ class SkInquiry {
                 }
 
                 echo '</select>';
+                echo '<div class="description">'.__('Select an e-mail template that is used for the mail to the client', 'skinquiry').'</div>';
                 break;
 
             // pdftemplate select list
@@ -264,16 +274,19 @@ class SkInquiry {
                 }
 
                 echo '</select>';
+                echo '<div class="description">'.__('Select a PDF template that is used for the document generation', 'skinquiry').'</div>';
                 break;
 
             // document notes before
             case "skinquiry_notes_before":
                 echo '<textarea id="skinquiry_notes_before" name="skinquiry_options[notes_before]" rows="5" cols="40" type="text">'.$this->options['notes_before'].'</textarea>';
+                echo '<div class="description">'.__('Enter a text that will be displayed above the line items in the generated document', 'skinquiry').'</div>';
                 break;
 
             // document notes after
             case "skinquiry_notes_after":
                 echo '<textarea id="skinquiry_notes_after" name="skinquiry_options[notes_after]" rows="5" cols="40" type="text">'.$this->options['notes_after'].'</textarea>';
+                echo '<div class="description">'.__('Enter a text that will be displayed below the line items in the generated document', 'skinquiry').'</div>';
                 break;
         }
     }
@@ -291,7 +304,7 @@ class SkInquiry {
                     <?php settings_fields('skinquiry_options'); ?>
                     <?php do_settings_sections('skinquiry'); ?>
 
-                    <input name="Submit" type="submit" class="button button-primary" value="<?php __('Save Changes', 'skinquiry' ); ?>" />
+                    <input name="Submit" type="submit" class="button button-primary" value="<?php echo __('Save Changes', 'skinquiry' ); ?>" />
                 </form>
             </div>
         <?php
