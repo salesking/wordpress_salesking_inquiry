@@ -133,10 +133,10 @@ class SkInquiry {
         add_settings_field('skinquiry_sk_url', __('SalesKing URL', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_url"));
         add_settings_field('skinquiry_sk_username', __('SalesKing Username', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_username"));
         add_settings_field('skinquiry_sk_password', __('SalesKing Password', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_sk_password"));
+        add_settings_field('skinquiry_document_type', __('Document Type', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_document_type"));
 
         // hide all other settings as long as the api is not ready
         if ($this->getApiStatus() && $this->options['sk_url'] && $this->options['sk_password'] && $this->options['sk_username']) {
-            add_settings_field('skinquiry_document_type', __('Document Type', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_document_type"));
             add_settings_field('skinquiry_products_tag', __('Products Tag', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_products_tag"));
             add_settings_field('skinquiry_client_tags', __('Client Tags', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_client_tags"));
             add_settings_field('skinquiry_document_tags', __('Document Tags', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_document_tags"));
@@ -295,6 +295,12 @@ class SkInquiry {
      * generate settings form
      */
     public function adminDisplay() {
+        // add required javascripts
+        wp_enqueue_script( 'jquery' );
+        wp_enqueue_script( 'skinquiryAdmin', plugins_url('js/skinquiry.admin.js', __FILE__ ));
+
+        // find out which button text we should use for the submit button
+        $buttonText = ($this->getApiStatus() && $this->options['sk_url'] && $this->options['sk_password'] && $this->options['sk_username']) ? __('Save Changes', 'skinquiry' ) : __('Connect', 'skinquiry' );
         ?>
             <div class="wrap">
                 <?php screen_icon(); ?>
@@ -304,7 +310,7 @@ class SkInquiry {
                     <?php settings_fields('skinquiry_options'); ?>
                     <?php do_settings_sections('skinquiry'); ?>
 
-                    <input name="Submit" type="submit" class="button button-primary" value="<?php echo __('Save Changes', 'skinquiry' ); ?>" />
+                    <input name="Submit" type="submit" class="button button-primary" value="<?php echo $buttonText; ?>" />
                 </form>
             </div>
         <?php
