@@ -488,7 +488,7 @@ class SkInquiry {
                 ));
 
             try {
-                $this->pdfTemplates = $templates->load()->getItems();
+                $this->pdfTemplates = $templates->kind($this->options['document_type'])->load()->getItems();
             }
             catch (SaleskingException $e) {
                 return false;
@@ -512,7 +512,7 @@ class SkInquiry {
                 ));
 
             try {
-                $this->emailTemplates = $templates->load()->getItems();
+                $this->emailTemplates = $templates->kind($this->options['document_type'])->load()->getItems();
             }
             catch (SaleskingException $e) {
                 return false;
