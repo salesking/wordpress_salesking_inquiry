@@ -137,8 +137,9 @@ class SkInquiry {
 
         // hide all other settings as long as the api is not ready
         if ($this->getApiStatus() && $this->options['sk_url'] && $this->options['sk_password'] && $this->options['sk_username']) {
+            add_settings_field('skinquiry_contact_type', __('Contact Type', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_contact_type"));
             add_settings_field('skinquiry_products_tag', __('Products Tag', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_products_tag"));
-            add_settings_field('skinquiry_client_tags', __('Client Tags', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_client_tags"));
+            add_settings_field('skinquiry_contact_tags', __('Contact Tags', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_contact_tags"));
             add_settings_field('skinquiry_document_tags', __('Document Tags', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_document_tags"));
             add_settings_field('skinquiry_redirect_url', __('Redirect URL', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_redirect_url"));
             add_settings_field('skinquiry_use_captcha', __('Use Captcha', 'skinquiry' ), array($this, 'generateInputs'), 'skinquiry', 'skinquiry_main', array("id" => "skinquiry_use_captcha"));
@@ -192,16 +193,32 @@ class SkInquiry {
                 '.__('NOTICE: If you change the document type, please make sure that you also choose a matching email and pdf template!', 'skinquiry').'</div>';
                 break;
 
+            // contact type
+            case "skinquiry_contact_type":
+                echo '<select id="skinquiry_contact_type" name="skinquiry_options[contact_type]" >';
+
+                $checked = ($this->options['contact_type'] == 'Lead') ? 'selected="selected"' : '';
+                echo '<option '.$checked.' value="Lead">'.__('Lead', 'skinquiry' ).'</option>';
+
+                $checked = ($this->options['contact_type'] == 'Client') ? 'selected="selected"' : '';
+                echo '<option '.$checked.' value="Client">'.__('Client', 'skinquiry' ).'</option>';
+
+                $checked = ($this->options['contact_type'] == 'Supplier') ? 'selected="selected"' : '';
+                echo '<option '.$checked.' value="Supplier">'.__('Supplier', 'skinquiry' ).'</option>';
+
+                echo '</select>';
+                break;
+
             // products tag
             case "skinquiry_products_tag":
                 echo '<input id="skinquiry_products_tag" name="skinquiry_options[products_tag]" size="40" type="text" value="'.$this->options['products_tag'].'" />';
                 echo '<div class="description">'.__('Enter a comma-separated list of tags that will be used to filter the displayed products in the form', 'skinquiry').'</div>';
                 break;
 
-            // client tags
-            case "skinquiry_client_tags":
-                echo '<input id="skinquiry_client_tags" name="skinquiry_options[client_tags]" size="40" type="text" value="'.$this->options['client_tags'].'" />';
-                echo '<div class="description">'.__('Enter a comma-separated list of tags that will be added to the new client in the SalesKing', 'skinquiry').'</div>';
+            // contact tags
+            case "skinquiry_contact_tags":
+                echo '<input id="skinquiry_contact_tags" name="skinquiry_options[contact_tags]" size="40" type="text" value="'.$this->options['contact_tags'].'" />';
+                echo '<div class="description">'.__('Enter a comma-separated list of tags that will be added to the new contact in the SalesKing', 'skinquiry').'</div>';
                 break;
 
             // document tags
@@ -251,7 +268,7 @@ class SkInquiry {
                 }
 
                 echo '</select>';
-                echo '<div class="description">'.__('Select an e-mail template that is used for the mail to the client', 'skinquiry').'</div>';
+                echo '<div class="description">'.__('Select an e-mail template that is used for the mail to the contact', 'skinquiry').'</div>';
                 break;
 
             // pdftemplate select list
@@ -595,26 +612,26 @@ class SkInquiry {
         // generate form
         $content .= '</select>
         <form method="post" id="skinquiry_form">
-            <fieldset id="skinquiry_clientdetails">
+            <fieldset id="skinquiry_contactdetails">
                 <legend>'.__('Your Details', 'skinquiry' ).'</legend>
-                <label for="skinquiry_client_last_name">'.__('Last name', 'skinquiry' ).'*</label>
-                <input name="skinquiry_client_last_name" type="text" id="skinquiry_client_last_name" required="required" />
-                <label for="skinquiry_client_first_name">'.__('First name', 'skinquiry' ).'*</label>
-                <input name="skinquiry_client_first_name" type="text" id="skinquiry_client_first_name" required="required" />
-                <label for="skinquiry_client_organisation_name">'.__('Company', 'skinquiry' ).'</label>
-                <input name="skinquiry_client_organisation_name" type="text" id="skinquiry_client_organisation_name" />
-                <label for="skinquiry_client_email">'.__('E-Mail', 'skinquiry' ).'*</label>
-                <input name="skinquiry_client_email" type="text" id="skinquiry_client_email" required="required" />
-                <label for="skinquiry_client_phone">'.__('Phone', 'skinquiry' ).'</label>
-                <input name="skinquiry_client_phone" type="text" id="skinquiry_client_phone" />
-                <label for="skinquiry_client_address1">'.__('Address', 'skinquiry' ).'*</label>
-                <input name="skinquiry_client_address1" type="text" id="skinquiry_client_address1" required="required" />
-                <label for="skinquiry_client_zip">'.__('Zip', 'skinquiry' ).'*</label>
-                <input name="skinquiry_client_zip" type="text" id="skinquiry_client_zip" required="required" />
-                <label for="skinquiry_client_city">'.__('City', 'skinquiry' ).'*</label>
-                <input name="skinquiry_client_city" type="text" id="skinquiry_client_city" required="required" />
-                <label for="skinquiry_client_country">'.__('Country', 'skinquiry' ).'*</label>
-                <input name="skinquiry_client_country" type="text" id="skinquiry_client_country" required="required" />
+                <label for="skinquiry_contact_last_name">'.__('Last name', 'skinquiry' ).'*</label>
+                <input name="skinquiry_contact_last_name" type="text" id="skinquiry_contact_last_name" required="required" />
+                <label for="skinquiry_contact_first_name">'.__('First name', 'skinquiry' ).'*</label>
+                <input name="skinquiry_contact_first_name" type="text" id="skinquiry_contact_first_name" required="required" />
+                <label for="skinquiry_contact_organisation_name">'.__('Company', 'skinquiry' ).'</label>
+                <input name="skinquiry_contact_organisation_name" type="text" id="skinquiry_contact_organisation_name" />
+                <label for="skinquiry_contact_email">'.__('E-Mail', 'skinquiry' ).'*</label>
+                <input name="skinquiry_contact_email" type="text" id="skinquiry_contact_email" required="required" />
+                <label for="skinquiry_contact_phone">'.__('Phone', 'skinquiry' ).'</label>
+                <input name="skinquiry_contact_phone" type="text" id="skinquiry_contact_phone" />
+                <label for="skinquiry_contact_address1">'.__('Address', 'skinquiry' ).'*</label>
+                <input name="skinquiry_contact_address1" type="text" id="skinquiry_contact_address1" required="required" />
+                <label for="skinquiry_contact_zip">'.__('Zip', 'skinquiry' ).'*</label>
+                <input name="skinquiry_contact_zip" type="text" id="skinquiry_contact_zip" required="required" />
+                <label for="skinquiry_contact_city">'.__('City', 'skinquiry' ).'*</label>
+                <input name="skinquiry_contact_city" type="text" id="skinquiry_contact_city" required="required" />
+                <label for="skinquiry_contact_country">'.__('Country', 'skinquiry' ).'*</label>
+                <input name="skinquiry_contact_country" type="text" id="skinquiry_contact_country" required="required" />
             </fieldset>
             <fieldset>
                 <legend>'.__('Products', 'skinquiry' ).'</legend>
@@ -669,44 +686,45 @@ class SkInquiry {
     private function send() {
         // set up objects
         $address = $this->getApi()->getObject('address');
-        $client = $this->getApi()->getObject('client');
+        $contact = $this->getApi()->getObject('contact');
         $document = $this->getApi()->getObject($this->options['document_type']);
         $comment = $this->getApi()->getObject('comment');
 
         // bind address data
         try {
             $address->bind($_POST, array(
-                "skinquiry_client_address1" => "address1",
-                "skinquiry_client_city" => "city",
-                "skinquiry_client_zip" => "zip",
-                "skinquiry_client_country" => "country"
+                "skinquiry_contact_address1" => "address1",
+                "skinquiry_contact_city" => "city",
+                "skinquiry_contact_zip" => "zip",
+                "skinquiry_contact_country" => "country"
             ));
         }
         catch (SaleskingException $e) {
             return false;
         }
 
-        // bind client data
+        // bind contact data
         try {
-            $client->bind($_POST, array(
-                "skinquiry_client_organisation_name" => "organisation",
-                "skinquiry_client_last_name" => "last_name",
-                "skinquiry_client_first_name" => "first_name",
-                "skinquiry_client_email" => "email",
-                "skinquiry_client_phone" => "phone_office"
+            $contact->bind($_POST, array(
+                "skinquiry_contact_organisation_name" => "organisation",
+                "skinquiry_contact_last_name" => "last_name",
+                "skinquiry_contact_first_name" => "first_name",
+                "skinquiry_contact_email" => "email",
+                "skinquiry_contact_phone" => "phone_office"
             ));
 
-            // set tags and address
-            $client->tag_list = $this->options['client_tags'];
-            $client->addresses = array($address->getData());
+            // set tags, type and address
+            $contact->type = $this->options['contact_type'];
+            $contact->tag_list = $this->options['contact_tags'];
+            $contact->addresses = array($address->getData());
         }
         catch (SaleskingException $e) {
             return false;
         }
 
-        // save client
+        // save contact
         try {
-            $client->save();
+            $contact->save();
         }
         catch (SaleskingException $e) {
             return false;
@@ -735,7 +753,7 @@ class SkInquiry {
 
         // set all the other options for the document
         try {
-            $document->client_id = $client->id;
+            $document->contact_id = $contact->id;
             $document->tag_list = $this->options['document_tags'];
             $document->notes_before = $this->options['notes_before'];
             $document->notes_after = $this->options['notes_after'];
@@ -743,7 +761,7 @@ class SkInquiry {
             $document->line_items = $items;
         }
         catch (SaleskingException $e) {
-            return false;
+            die(print_r($e));
         }
 
         // save document
@@ -780,18 +798,18 @@ class SkInquiry {
             return false;
         }
 
-        // send mail to client
+        // send mail to contact
         try {
             $mail = new stdClass();
             $mail->email = new stdClass();
-            $mail->email->to_addr = $_POST['skinquiry_client_email'];
+            $mail->email->to_addr = $_POST['skinquiry_contact_email'];
             $mail->email->from_addr = "";
 
             $mail->send = true;
             $mail->archived_pdf = true;
             $mail->template_id = $this->options['emailtemplate'];
 
-            // create mail and send to client
+            // create mail and send to contact
             $this->getApi()->request('/api/'.$this->options['document_type'].'s/'.$document->id.'/emails','POST',
                 json_encode($mail)
             );
@@ -815,42 +833,42 @@ class SkInquiry {
     private function validate() {
 
         // last name is set
-        if (!isset($_POST['skinquiry_client_last_name'])) {
+        if (!isset($_POST['skinquiry_contact_last_name'])) {
             return false;
         }
 
         // first name is set
-        if (!isset($_POST['skinquiry_client_first_name'])) {
+        if (!isset($_POST['skinquiry_contact_first_name'])) {
             return false;
         }
 
         // email is set
-        if (!isset($_POST['skinquiry_client_email'])) {
+        if (!isset($_POST['skinquiry_contact_email'])) {
             return false;
         }
 
         // email is valid
-        if (!preg_match("^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$^", $_POST['skinquiry_client_email'])) {
+        if (!preg_match("^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$^", $_POST['skinquiry_contact_email'])) {
             return false;
         }
 
         // address is set
-        if (!isset($_POST['skinquiry_client_address1'])) {
+        if (!isset($_POST['skinquiry_contact_address1'])) {
             return false;
         }
 
         // zip is set
-        if (!isset($_POST['skinquiry_client_zip'])) {
+        if (!isset($_POST['skinquiry_contact_zip'])) {
             return false;
         }
 
         // city is set
-        if (!isset($_POST['skinquiry_client_city'])) {
+        if (!isset($_POST['skinquiry_contact_city'])) {
             return false;
         }
 
         // country is set
-        if (!isset($_POST['skinquiry_client_country'])) {
+        if (!isset($_POST['skinquiry_contact_country'])) {
             return false;
         }
 

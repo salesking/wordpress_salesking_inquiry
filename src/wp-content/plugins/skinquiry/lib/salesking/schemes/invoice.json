@@ -97,16 +97,28 @@
       "properties":{"$ref":"./attachment.json#properties"}
     },
     "client":{
-      "description": "The client for the document. New documents cannot create a client, use client_id field to set it.",
+      "description": "DEPRECATED: use contact",
       "readonly":true,
       "type":"object",
       "properties":{"$ref":"./client.json#properties"}
     },
     "client_id":{
-      "description": "The clients uuid. If a new client is assigned its language, address field, due days and cash discount are used if those fields are not set.",
+      "description": "DEPRECATED: use contact_id",
       "type":"string",
       "maxLength": 22,
-      "minLength": 22
+      "minLength":22
+    },
+    "contact":{
+      "description": "The contact for the document. Use contact_id field to set a contact.",
+      "readonly":true,
+      "type":"object",
+      "properties":{"$ref":"./contact.json#properties"}
+    },
+    "contact_id":{
+      "description": "The contact uuid. When assigning a contact its language, currency, address_field (due days, cash discount) values are used for the document if those doc-fields are not set.",
+      "type":"string",
+      "maxLength": 22,
+      "minLength":22
     },
     "team_id":{
       "description": "A team uuid. If set only the team and its parent teams can see the record.",
@@ -226,7 +238,12 @@
         },
         "filter[client_ids]":{
           "title" : "Clients",
-          "description": "A single or a list of client uuids, comma separated",
+          "description": "DEPRECATED use contact_ids",
+          "type" : "string"
+        },
+        "filter[contact_ids]":{
+          "title" : "Contacts",
+          "description": "A single or a list of contact uuids, comma separated",
           "type" : "string"
         },
         "filter[ids]":{
@@ -242,13 +259,14 @@
         "sort_by":{
           "title" : "Sort by",
           "description": "Sort the results by the given field => number",
-          "enum":["title", "number", "created_at", "updated_at", "client_id", "price_total", "price_tax", "date", "due_date"],
+          "enum":["title", "number", "created_at", "updated_at", "price_total", "price_tax", "date", "due_date"],
           "type": "string"
         },
         "sort":{
           "title" : "Sort",
           "enum":["ASC","DESC"],
-          "description": "Sort the results in ASC or DESC"
+          "description": "Sort the results in ASC or DESC",
+          "type": "string"
         }
       }
     },
