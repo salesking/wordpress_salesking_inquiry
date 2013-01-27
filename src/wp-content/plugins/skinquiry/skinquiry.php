@@ -650,7 +650,7 @@ class SkInquiry {
                         <span class="skinquiry_delete">'.__('Remove', 'skinquiry' ).'</span>
                     </div>
                 </div>
-                <button id="skinquiry_addproduct">'.__('Add line item', 'skinquiry' ).'</button>
+                <span class="button" id="skinquiry_addproduct">'.__('Add line item', 'skinquiry' ).'</span>
             </fieldset>
             <fieldset>
                 <legend>'.__('Comment', 'skinquiry' ).'</legend>
