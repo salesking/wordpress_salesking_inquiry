@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: SkInquiryWP\n"
-"POT-Creation-Date: 2013-01-25 18:26+0100\n"
-"PO-Revision-Date: 2013-01-25 18:26+0100\n"
+"POT-Creation-Date: 2013-01-30 15:21+0100\n"
+"PO-Revision-Date: 2013-01-30 15:22+0100\n"
 "Last-Translator: David Jardin <d.jardin@djumla.de>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -181,7 +181,8 @@ msgstr ""
 
 #: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:244
 msgid ""
-"Please install the plugin \"ReallySimpleCaptcha\" to enable this function"
+"Please install the plugin \"ReallySimpleCaptcha\" to enable this function "
+"and make sure that the skinquiry tmp folder is writeable"
 msgstr ""
 
 #: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:259
@@ -226,17 +227,17 @@ msgid "Invalid credentials"
 msgstr ""
 
 #: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:574
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:640
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:650
 msgid "Product"
 msgstr ""
 
 #: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:575
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:650
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:660
 msgid "Remove"
 msgstr ""
 
 #: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:576
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:648
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:658
 msgid "Quantity"
 msgstr ""
 
@@ -244,70 +245,70 @@ msgstr ""
 msgid "No Products found"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:616
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:626
 msgid "Your Details"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:617
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:627
 msgid "Last name"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:619
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:629
 msgid "First name"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:621
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:631
 msgid "Company"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:623
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:633
 msgid "E-Mail"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:625
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:635
 msgid "Phone"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:627
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:637
 msgid "Address"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:629
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:639
 msgid "Zip"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:631
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:641
 msgid "City"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:633
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:643
 msgid "Country"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:637
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:647
 msgid "Products"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:653
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:663
 msgid "Add line item"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:656
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:666
 msgid "Comment"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:657
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:667
 msgid "Your message for us"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:665
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:675
 msgid "Security Check"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:667
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:677
 msgid "Please enter the displayed word"
 msgstr ""
 
-#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:673
+#: /Users/sniper/Zend/workspaces/DefaultWorkspace/SkInquiryWP/src/wp-content/plugins/skinquiry/skinquiry.php:683
 msgid "Request Document"
 msgstr ""

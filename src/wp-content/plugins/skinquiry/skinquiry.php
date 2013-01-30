@@ -235,13 +235,13 @@ class SkInquiry {
 
             // use captcha
             case "skinquiry_use_captcha":
-                if (class_exists('ReallySimpleCaptcha')) {
+                if (class_exists('ReallySimpleCaptcha') AND is_writable(dirname( __FILE__ ) . '/tmp/')) {
                     $checked = ($this->options['use_captcha'] == 1) ? 'checked="checked"'  : '';
                     echo '<input id="skinquiry_use_captcha" name="skinquiry_options[use_captcha]" type="checkbox" value="1" '.$checked.' />';
                     echo '<div class="description">'.__('Display a captcha image to increase security', 'skinquiry').'</div>';
                 }
                 else {
-                    echo __('Please install the plugin "ReallySimpleCaptcha" to enable this function', 'skinquiry' );
+                    echo __('Please install the plugin "ReallySimpleCaptcha" to enable this function and make sure that the skinquiry tmp folder is writeable', 'skinquiry' );
                     echo '<input id="skinquiry_use_captcha" name="skinquiry_options[use_captcha]" type="hidden" value="0" />';
                 }
 
@@ -596,10 +596,20 @@ class SkInquiry {
         // fetch captcha
         $captcha = false;
         if ($this->options['use_captcha'] == 1 AND class_exists('ReallySimpleCaptcha')) {
-            $captcha = new ReallySimpleCaptcha();
-            $captcha->tmp_dir = dirname( __FILE__ ) . '/tmp/';
-            $captchaPrefix = mt_rand();
-            $captchaImage = $captcha->generate_image( $captchaPrefix, $captcha->generate_random_word() );
+            if(!file_exists(dirname( __FILE__ ) . '/tmp/')) {
+                @mkdir(dirname( __FILE__ ) . '/tmp/',0777,true);
+            }
+
+            if(!is_writable(dirname( __FILE__ ) . '/tmp/')) {
+                @chmod(dirname( __FILE__ ) . '/tmp/', 777);
+            }
+
+            if(is_writable(dirname( __FILE__ ) . '/tmp/')) {
+                $captcha = new ReallySimpleCaptcha();
+                $captcha->tmp_dir = dirname( __FILE__ ) . '/tmp/';
+                $captchaPrefix = mt_rand();
+                $captchaImage = $captcha->generate_image( $captchaPrefix, $captcha->generate_random_word() );
+            }
         }
 
         // generate hidden select list which is used by the javascript
@@ -885,7 +895,7 @@ class SkInquiry {
         }
 
         // check if the captcha is active
-        if ($this->options['use_captcha'] == 1 AND class_exists('ReallySimpleCaptcha')) {
+        if ($this->options['use_captcha'] == 1 AND class_exists('ReallySimpleCaptcha') AND is_writable(dirname( __FILE__ ) . '/tmp/')) {
             $captcha = new ReallySimpleCaptcha();
             $captcha->tmp_dir = dirname( __FILE__ ) . '/tmp/';
 
