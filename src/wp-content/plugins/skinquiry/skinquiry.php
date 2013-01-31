@@ -314,8 +314,7 @@ class SkInquiry {
      */
     public function adminDisplay() {
         // add required javascripts
-        wp_enqueue_script( 'jquery' );
-        wp_enqueue_script( 'skinquiryAdmin', plugins_url('js/skinquiry.admin.js', __FILE__ ));
+        wp_enqueue_script( 'skinquiryAdmin', plugins_url('js/skinquiry.admin.js', __FILE__ ), array('jquery'), FALSE, TRUE);
 
         // find out which button text we should use for the submit button
         $buttonText = ($this->getApiStatus() && $this->options['sk_url'] && $this->options['sk_password'] && $this->options['sk_username']) ? __('Save Changes', 'skinquiry' ) : __('Connect', 'skinquiry' );
@@ -565,10 +564,9 @@ class SkInquiry {
             return null;
         }
 
-        // load jquery and
-        wp_enqueue_script( 'jquery' );
-        wp_enqueue_script( 'skinquiry', plugins_url('js/skinquiry.js', __FILE__ ));
-        wp_enqueue_script( 'jquery_validation', plugins_url('js/jquery.validate.min.js', __FILE__ ));
+        // load js with jquery dependency
+        wp_enqueue_script( 'jquery_validation', plugins_url('js/jquery.validate.min.js', __FILE__ ), array('jquery'), FALSE, TRUE);
+        wp_enqueue_script( 'skinquiry', plugins_url('js/skinquiry.js', __FILE__ ), array('jquery'), FALSE, TRUE);
         wp_enqueue_style( 'skinquiry', plugins_url('css/skinquiry.css', __FILE__ ));
         wp_localize_script( 'skinquiry', 'objectL10n', array(
             'product' => __( 'Product', 'skinquiry' ),
