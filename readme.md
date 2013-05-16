@@ -15,10 +15,11 @@ Additional features:
 0. Get a SalesKing account: salesking.eu
 1. Install the plugin
 2. Configure the plugin in the settings area: Settings > SkInquiry
-3. Embed the plugin in your content by using this snippet: [skinquiry]
+3. Embed the plugin in your content by using this snippet: *[skinquiry]*
 4. Have fun!
 
 ## System requirements
 Wordpress 3.5.x
 PHP 5.3.x+
 PHP cURL extension
+jQuery 1.8+
